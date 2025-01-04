@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'providers/timer_provider.dart';
 import 'providers/settings_provider.dart';
 import 'screens/home_screen.dart';
+import 'config/theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,10 +33,11 @@ class FocalApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Focal',
-      theme: ThemeData.dark().copyWith(
-        primaryColor: Colors.indigo,
-        scaffoldBackgroundColor: Colors.black,
-      ),
+      // theme: ThemeData.dark().copyWith(
+      //   primaryColor: Colors.indigo,
+      //   scaffoldBackgroundColor: Colors.black,
+      // ),
+      theme: AppTheme.darkTheme,
       home: const HomeScreen(),
     );
   }

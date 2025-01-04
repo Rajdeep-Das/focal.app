@@ -16,4 +16,20 @@ class AppTheme {
       ),
     );
   }
+
+  static ThemeData get lightTheme {
+    return ThemeData.light().copyWith(
+      primaryColor: Colors.indigo,
+      scaffoldBackgroundColor: Colors.white,
+      textTheme: GoogleFonts.interTextTheme(
+        ThemeData.light().textTheme,
+      ),
+      colorScheme: const ColorScheme.light(
+        primary: Colors.indigo,
+        secondary: Colors.indigoAccent,
+        surface: Colors.white,
+        onSurface: Colors.black87,
+      ),
+    );
+  }
 }
