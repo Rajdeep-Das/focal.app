@@ -4,7 +4,7 @@ import '../providers/timer_provider.dart';
 import '../widgets/timer_display.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();

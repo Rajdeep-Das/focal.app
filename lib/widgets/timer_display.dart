@@ -5,10 +5,10 @@ class TimerDisplay extends StatelessWidget {
   final bool isRunning;
 
   const TimerDisplay({
-    Key? key,
+    super.key,
     required this.timeLeft,
     required this.isRunning,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
