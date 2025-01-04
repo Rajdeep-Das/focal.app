@@ -46,10 +46,21 @@ class Settings {
         'theme': theme,
         'keepScreenOn': keepScreenOn,
         'dailyReminder': dailyReminder,
-        'reminderTime': reminderTime?.toString(),
+        'reminderTime': reminderTime != null
+            ? '${reminderTime!.hour}:${reminderTime!.minute}'
+            : null,
       };
 
   factory Settings.fromJson(Map<String, dynamic> json) {
+    String? timeString = json['reminderTime'];
+    TimeOfDay? parsedTime;
+
+    if (timeString != null) {
+      final parts = timeString.split(':');
+      parsedTime =
+          TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+    }
+
     return Settings(
       focusDuration: json['focusDuration'] ?? 25,
       soundEnabled: json['soundEnabled'] ?? true,
@@ -57,9 +68,7 @@ class Settings {
       theme: json['theme'] ?? 'system',
       keepScreenOn: json['keepScreenOn'] ?? true,
       dailyReminder: json['dailyReminder'] ?? false,
-      reminderTime: json['reminderTime'] != null
-          ? TimeOfDay.fromDateTime(DateTime.parse(json['reminderTime']))
-          : null,
+      reminderTime: parsedTime,
     );
   }
 }
