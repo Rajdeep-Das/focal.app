@@ -1,12 +1,18 @@
+// lib/providers/timer_provider.dart
 import 'dart:async';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import '../models/session_model.dart';
+import '../providers/settings_provider.dart';
 
 class TimerProvider with ChangeNotifier {
-  int _timeLeft = 25 * 60; // 25 minutes in seconds
+  int _timeLeft;
   bool _isRunning = false;
   Timer? _timer;
   final List<Session> _sessions = [];
+  final SettingsProvider _settings;
+
+  TimerProvider(this._settings)
+      : _timeLeft = _settings.settings.focusDuration * 60;
 
   int get timeLeft => _timeLeft;
   bool get isRunning => _isRunning;
@@ -14,6 +20,7 @@ class TimerProvider with ChangeNotifier {
 
   void startTimer() {
     if (!_isRunning) {
+      _timeLeft = _settings.settings.focusDuration * 60;
       _isRunning = true;
       _timer = Timer.periodic(
         const Duration(seconds: 1),
@@ -31,7 +38,7 @@ class TimerProvider with ChangeNotifier {
 
   void resetTimer() {
     _timer?.cancel();
-    _timeLeft = 25 * 60;
+    _timeLeft = _settings.settings.focusDuration * 60;
     _isRunning = false;
     notifyListeners();
   }
@@ -52,9 +59,9 @@ class TimerProvider with ChangeNotifier {
       Session(
         id: DateTime.now().toString(),
         startTime: DateTime.now().subtract(
-          Duration(seconds: 25 * 60),
+          Duration(minutes: _settings.settings.focusDuration),
         ),
-        duration: 25 * 60,
+        duration: _settings.settings.focusDuration * 60,
         completed: true,
       ),
     );
