@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/timer_provider.dart';
 import '../widgets/timer_display.dart';
 import 'settings_screen.dart';
+import 'statistics_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -34,6 +35,29 @@ class _HomeScreenState extends State<HomeScreen>
     return Consumer<TimerProvider>(
       builder: (context, timer, child) {
         return Scaffold(
+          appBar: AppBar(
+            title: const Text('Focal Timer'),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.bar_chart),
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const StatisticsScreen(),
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.settings),
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SettingsScreen(),
+                  ),
+                ),
+              ),
+            ],
+          ),
           body: SafeArea(
             child: Column(
               children: [

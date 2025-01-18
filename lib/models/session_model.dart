@@ -1,27 +1,27 @@
+import 'package:hive/hive.dart';
+
+part 'session_model.g.dart';
+
+@HiveType(typeId: 0)
+enum SessionStatus {
+  @HiveField(0)
+  completed,
+  @HiveField(1)
+  interrupted
+}
+
+@HiveType(typeId: 2)
 class Session {
-  final String id;
+  @HiveField(0)
   final DateTime startTime;
-  final int duration;
-  final bool completed;
+  @HiveField(1)
+  final DateTime endTime;
+  @HiveField(2)
+  final SessionStatus status;
 
   Session({
-    required this.id,
     required this.startTime,
-    required this.duration,
-    this.completed = false,
+    required this.endTime,
+    required this.status,
   });
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'startTime': startTime.toIso8601String(),
-        'duration': duration,
-        'completed': completed,
-      };
-
-  factory Session.fromJson(Map<String, dynamic> json) => Session(
-        id: json['id'],
-        startTime: DateTime.parse(json['startTime']),
-        duration: json['duration'],
-        completed: json['completed'],
-      );
 }

@@ -5,6 +5,9 @@ import '../models/session_model.dart';
 import '../providers/settings_provider.dart';
 import '../services/notification_service.dart';
 import '../services/audio_service.dart';
+import '../repositories/session_repository.dart';
+import '../services/analytics_service.dart';
+import '../models/analytics_model.dart';
 
 class TimerProvider with ChangeNotifier {
   int _timeLeft;
@@ -14,13 +17,32 @@ class TimerProvider with ChangeNotifier {
   final SettingsProvider _settings;
   final NotificationService _notificationService;
   final AudioService _audioService;
+  final SessionRepository _repository;
+  final AnalyticsService _analytics;
 
-  TimerProvider(this._settings, this._notificationService, this._audioService)
-      : _timeLeft = _settings.settings.focusDuration * 60;
+  DailyStatistics? _todayStats;
+  WeeklyAnalytics? _weeklyStats;
+
+  TimerProvider(this._settings, this._notificationService, this._audioService,
+      this._repository, this._analytics)
+      : _timeLeft = _settings.settings.focusDuration * 60 {
+    // Load statistics when provider is initialized
+    refreshStatistics();
+  }
 
   int get timeLeft => _timeLeft;
   bool get isRunning => _isRunning;
   List<Session> get sessions => List.unmodifiable(_sessions);
+
+  DailyStatistics? get todayStats => _todayStats;
+  WeeklyAnalytics? get weeklyStats => _weeklyStats;
+
+  Future<void> refreshStatistics() async {
+    _todayStats = await _analytics.getDailyStatistics(DateTime.now());
+    _weeklyStats = await _analytics.getWeeklyAnalytics(
+        DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1)));
+    notifyListeners();
+  }
 
   void startTimer() {
     if (!_isRunning) {
@@ -58,16 +80,16 @@ class TimerProvider with ChangeNotifier {
   void _handleTimerComplete() {
     _timer?.cancel();
     _isRunning = false;
-    _sessions.add(
-      Session(
-        id: DateTime.now().toString(),
-        startTime: DateTime.now().subtract(
-          Duration(minutes: _settings.settings.focusDuration),
-        ),
-        duration: _settings.settings.focusDuration * 60,
-        completed: true,
+    final session = Session(
+      startTime: DateTime.now().subtract(
+        Duration(minutes: _settings.settings.focusDuration),
       ),
+      endTime: DateTime.now(),
+      status: SessionStatus.completed,
     );
+
+    _sessions.add(session);
+    _repository.saveSession(session);
 
     // Play sound if enabled
     if (_settings.settings.soundEnabled) {
