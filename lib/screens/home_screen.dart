@@ -72,13 +72,15 @@ class _HomeScreenState extends State<HomeScreen>
                       _buildMainButton(timer),
                       _buildControlButton(
                         icon: Icons.settings,
-                        onPressed: () {
-                          Navigator.push(
+                        onPressed: () async {
+                          await Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => const SettingsScreen(),
                             ),
                           );
+                          Provider.of<TimerProvider>(context, listen: false)
+                              .resetTimer();
                         },
                       ),
                     ],
