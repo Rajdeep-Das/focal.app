@@ -47,15 +47,6 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.settings),
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const SettingsScreen(),
-                  ),
-                ),
-              ),
             ],
           ),
           body: SafeArea(
