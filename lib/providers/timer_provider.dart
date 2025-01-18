@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/session_model.dart';
 import '../providers/settings_provider.dart';
+import '../services/notification_service.dart';
+import '../services/audio_service.dart';
 
 class TimerProvider with ChangeNotifier {
   int _timeLeft;
@@ -10,8 +12,10 @@ class TimerProvider with ChangeNotifier {
   Timer? _timer;
   final List<Session> _sessions = [];
   final SettingsProvider _settings;
+  final NotificationService _notificationService;
+  final AudioService _audioService;
 
-  TimerProvider(this._settings)
+  TimerProvider(this._settings, this._notificationService, this._audioService)
       : _timeLeft = _settings.settings.focusDuration * 60;
 
   int get timeLeft => _timeLeft;
@@ -20,7 +24,6 @@ class TimerProvider with ChangeNotifier {
 
   void startTimer() {
     if (!_isRunning) {
-      _timeLeft = _settings.settings.focusDuration * 60;
       _isRunning = true;
       _timer = Timer.periodic(
         const Duration(seconds: 1),
@@ -65,6 +68,15 @@ class TimerProvider with ChangeNotifier {
         completed: true,
       ),
     );
+
+    // Play sound if enabled
+    if (_settings.settings.soundEnabled) {
+      _audioService.playTimerCompleteSound();
+    }
+
+    // Show notification
+    _notificationService.showTimerCompleteNotification();
+
     notifyListeners();
   }
 

@@ -2,7 +2,7 @@ name: focal_timer
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -37,10 +37,7 @@ dependencies:
   provider: ^6.1.2
   google_fonts: ^6.2.1
   shared_preferences: ^2.3.5
-  in_app_purchase: ^3.2.0
-  # wakelock: ^0.4.0
-  # audioplayers: ^5.2.1
-  # vibration: ^1.7.7
+  flutter_local_notifications: ^17.0.0
 
 dev_dependencies:
   flutter_test:
@@ -58,7 +55,6 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

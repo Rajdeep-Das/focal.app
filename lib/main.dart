@@ -4,9 +4,16 @@ import 'providers/timer_provider.dart';
 import 'providers/settings_provider.dart';
 import 'screens/home_screen.dart';
 import 'config/theme.dart';
+import 'services/notification_service.dart';
+import 'services/audio_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  final notificationService = NotificationService();
+  await notificationService.initialize();
+
+  final audioService = AudioService();
 
   final settingsProvider = SettingsProvider();
   await settingsProvider.initialize();
@@ -18,7 +25,11 @@ void main() async {
           value: settingsProvider,
         ),
         ChangeNotifierProvider(
-          create: (_) => TimerProvider(settingsProvider),
+          create: (_) => TimerProvider(
+            settingsProvider,
+            notificationService,
+            audioService,
+          ),
         ),
       ],
       child: const FocalApp(),
@@ -33,10 +44,6 @@ class FocalApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Focal',
-      // theme: ThemeData.dark().copyWith(
-      //   primaryColor: Colors.indigo,
-      //   scaffoldBackgroundColor: Colors.black,
-      // ),
       theme: AppTheme.darkTheme,
       home: const HomeScreen(),
     );

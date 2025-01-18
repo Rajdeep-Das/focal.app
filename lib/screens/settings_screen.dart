@@ -148,7 +148,7 @@ class SettingsScreen extends StatelessWidget {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            for (final duration in [25, 30, 45, 60])
+            for (final duration in [1, 25, 30, 45, 60]) // Time Duration
               RadioListTile<int>(
                 title: Text('$duration minutes'),
                 value: duration,
