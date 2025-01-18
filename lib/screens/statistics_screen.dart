@@ -146,44 +146,47 @@ class StatisticsScreen extends StatelessWidget {
 
     final weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-    // Calculate optimal interval based on max minutes
-    double calculateInterval(double maxY) {
-      if (maxY <= 60) return 15.0; // 15min intervals if under 1h
-      if (maxY <= 120) return 30.0; // 30min intervals if under 2h
-      if (maxY <= 240) return 60.0; // 1h intervals if under 4h
-      return 120.0; // 2h intervals otherwise
-    }
-
-    String formatMinutes(double value) {
-      if (value == 0) return '0';
-      if (value >= 60) {
-        final hours = (value / 60).floor();
-        return '${hours}h';
-      }
-      return '${value.floor()}m';
-    }
-
-    final maxY = weeklyStats.maxDailyMinutes.toDouble();
-    final interval = calculateInterval(maxY);
-
     return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
+        ),
+      ),
       child: Padding(
-        padding: EdgeInsets.fromLTRB(8, 16, 16, 16),
+        padding: EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Weekly Overview',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            SizedBox(height: 16),
+            Row(
+              children: [
+                Icon(
+                  Icons.bar_chart,
+                  color: Theme.of(context).colorScheme.primary,
+                  size: 20,
+                ),
+                SizedBox(width: 8),
+                Text(
+                  'Weekly Overview',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 24),
             SizedBox(
               height: 200,
               child: BarChart(
                 BarChartData(
                   alignment: BarChartAlignment.spaceAround,
-                  maxY: maxY + interval, // Add padding to top
+                  maxY: weeklyStats.maxDailyMinutes.toDouble() +
+                      60, // Add padding to top
                   gridData: FlGridData(
                     drawHorizontalLine: true,
-                    horizontalInterval: interval,
+                    horizontalInterval: 60,
                     getDrawingHorizontalLine: (value) {
                       return FlLine(
                         color: Colors.grey[300],
@@ -195,15 +198,15 @@ class StatisticsScreen extends StatelessWidget {
                     leftTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
-                        interval: interval,
+                        interval: 60,
                         reservedSize: 40, // More space for labels
                         getTitlesWidget: (value, meta) {
-                          if (value == maxY + interval)
+                          if (value == weeklyStats.maxDailyMinutes + 60)
                             return SizedBox.shrink();
                           return Padding(
                             padding: EdgeInsets.only(right: 8),
                             child: Text(
-                              formatMinutes(value),
+                              '${value.floor()}m',
                               style: TextStyle(
                                 color: Colors.grey[600],
                                 fontSize: 11,
@@ -248,9 +251,10 @@ class StatisticsScreen extends StatelessWidget {
                               BarChartRodData(
                                 toY: e.value.toDouble(),
                                 width: 20,
-                                color: Theme.of(context).primaryColor,
+                                color: Theme.of(context).colorScheme.primary,
                                 borderRadius: BorderRadius.vertical(
                                   top: Radius.circular(4),
+                                  bottom: Radius.circular(4),
                                 ),
                               ),
                             ],
@@ -266,24 +270,109 @@ class StatisticsScreen extends StatelessWidget {
   }
 
   Widget _buildSessionHistory(List<Session> sessions, BuildContext context) {
+    if (sessions.isEmpty) {
+      return Card(
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(
+            color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
+          ),
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(20),
+          child: Center(
+            child: Text(
+              'No sessions yet today',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
+        ),
+      ),
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Recent Sessions',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Row(
+              children: [
+                Icon(
+                  Icons.history,
+                  color: Theme.of(context).colorScheme.primary,
+                  size: 20,
+                ),
+                SizedBox(width: 8),
+                Text(
+                  'Recent Sessions',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
             SizedBox(height: 16),
-            ...sessions.map((session) => ListTile(
-                  title: Text('${session.startTime.toString().split('.')[0]}'),
-                  trailing: Text(session.status == SessionStatus.completed
-                      ? 'Completed'
-                      : 'Interrupted'),
+            ...sessions.map((session) => Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: session.status == SessionStatus.completed
+                              ? Colors.green
+                              : Colors.red,
+                        ),
+                      ),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          _formatDateTime(session.startTime),
+                          style: TextStyle(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withOpacity(0.8),
+                          ),
+                        ),
+                      ),
+                      Text(
+                        session.status == SessionStatus.completed
+                            ? 'Completed'
+                            : 'Interrupted',
+                        style: TextStyle(
+                          color: session.status == SessionStatus.completed
+                              ? Colors.green
+                              : Colors.red,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
                 )),
           ],
         ),
       ),
     );
+  }
+
+  String _formatDateTime(DateTime dateTime) {
+    final hour = dateTime.hour.toString().padLeft(2, '0');
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
   }
 }
