@@ -16,17 +16,26 @@ class StatisticsScreen extends StatelessWidget {
         final weeklyStats = timer.weeklyStats;
 
         return Scaffold(
-          appBar: AppBar(title: Text('Statistics')),
+          appBar: AppBar(
+            title: Text(
+              'Statistics',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            centerTitle: true,
+          ),
           body: RefreshIndicator(
             onRefresh: timer.refreshStatistics,
             child: ListView(
-              padding: EdgeInsets.all(16),
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 24),
               children: [
-                _buildDailyStats(stats),
+                _buildDailyStats(stats, context),
                 SizedBox(height: 24),
                 _buildWeeklyChart(weeklyStats, context),
                 SizedBox(height: 24),
-                _buildSessionHistory(timer.sessions),
+                _buildSessionHistory(timer.sessions, context),
               ],
             ),
           ),
@@ -35,37 +44,98 @@ class StatisticsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDailyStats(DailyStatistics? stats) {
+  Widget _buildDailyStats(DailyStatistics? stats, BuildContext context) {
     if (stats == null) return SizedBox.shrink();
 
     return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
+        ),
+      ),
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Today\'s Progress',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            SizedBox(height: 16),
-            _buildStatRow('Total Sessions', '${stats.totalSessions}'),
-            _buildStatRow('Completed', '${stats.completedSessions}'),
-            _buildStatRow('Minutes Focused', '${stats.totalMinutesFocused}'),
-            _buildStatRow('Completion Rate',
-                '${stats.completionRate.toStringAsFixed(1)}%'),
+            Row(
+              children: [
+                Icon(
+                  Icons.today,
+                  color: Theme.of(context).colorScheme.primary,
+                  size: 20,
+                ),
+                SizedBox(width: 8),
+                Text(
+                  'Today\'s Progress',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 20),
+            _buildStatRow(
+              context,
+              'Total Sessions',
+              '${stats.totalSessions}',
+              Icons.repeat,
+            ),
+            _buildStatRow(
+              context,
+              'Completed',
+              '${stats.completedSessions}',
+              Icons.check_circle_outline,
+            ),
+            _buildStatRow(
+              context,
+              'Minutes Focused',
+              '${stats.totalMinutesFocused}',
+              Icons.timer_outlined,
+            ),
+            _buildStatRow(
+              context,
+              'Completion Rate',
+              '${stats.completionRate.toStringAsFixed(1)}%',
+              Icons.trending_up,
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildStatRow(String label, String value) {
+  Widget _buildStatRow(
+      BuildContext context, String label, String value, IconData icon) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 8),
+      padding: EdgeInsets.symmetric(vertical: 12),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label),
-          Text(value, style: TextStyle(fontWeight: FontWeight.bold)),
+          Icon(
+            icon,
+            size: 18,
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.7),
+          ),
+          SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+              ),
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
         ],
       ),
     );
@@ -195,7 +265,7 @@ class StatisticsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSessionHistory(List<Session> sessions) {
+  Widget _buildSessionHistory(List<Session> sessions, BuildContext context) {
     return Card(
       child: Padding(
         padding: EdgeInsets.all(16),
