@@ -4,6 +4,7 @@ import '../providers/timer_provider.dart';
 import '../widgets/timer_display.dart';
 import 'settings_screen.dart';
 import 'statistics_screen.dart';
+import 'package:flutter/services.dart' show HapticFeedback;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -68,11 +69,13 @@ class _HomeScreenState extends State<HomeScreen>
                       _buildControlButton(
                         icon: Icons.refresh,
                         onPressed: timer.resetTimer,
+                        iconColor: Colors.grey[400],
                       ),
                       _buildMainButton(timer),
                       _buildControlButton(
                         icon: Icons.settings,
                         onPressed: () async {
+                          HapticFeedback.mediumImpact();
                           await Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -82,6 +85,7 @@ class _HomeScreenState extends State<HomeScreen>
                           Provider.of<TimerProvider>(context, listen: false)
                               .resetTimer();
                         },
+                        iconColor: Colors.grey[400],
                       ),
                     ],
                   ),
@@ -95,33 +99,46 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildMainButton(TimerProvider timer) {
-    return GestureDetector(
-      onTapDown: (_) => _controller.forward(),
-      onTapUp: (_) {
-        _controller.reverse();
-        if (timer.isRunning) {
-          timer.pauseTimer();
-        } else {
-          timer.startTimer();
-        }
-      },
-      onTapCancel: () => _controller.reverse(),
-      child: AnimatedBuilder(
-        animation: _scaleAnimation,
-        builder: (context, child) => Transform.scale(
-          scale: _scaleAnimation.value,
-          child: Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color:
-                  timer.isRunning ? Colors.red.shade400 : Colors.green.shade400,
-            ),
-            child: Icon(
-              timer.isRunning ? Icons.pause : Icons.play_arrow,
-              size: 40,
-              color: Colors.white,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTapDown: (_) => _controller.forward(),
+        onTapUp: (_) {
+          _controller.reverse();
+          if (timer.isRunning) {
+            timer.pauseTimer();
+          } else {
+            timer.startTimer();
+          }
+        },
+        onTapCancel: () => _controller.reverse(),
+        child: AnimatedBuilder(
+          animation: _scaleAnimation,
+          builder: (context, child) => Transform.scale(
+            scale: _scaleAnimation.value,
+            child: Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: timer.isRunning
+                    ? Colors.red.shade400
+                    : Colors.green.shade400,
+                boxShadow: [
+                  BoxShadow(
+                    color: (timer.isRunning ? Colors.red : Colors.green)
+                        .withOpacity(0.3),
+                    blurRadius: 8,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: Icon(
+                timer.isRunning ? Icons.pause : Icons.play_arrow,
+                size: 40,
+                color: Colors.white,
+              ),
             ),
           ),
         ),
@@ -132,12 +149,27 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildControlButton({
     required IconData icon,
     required VoidCallback onPressed,
+    Color? iconColor,
   }) {
-    return IconButton(
-      icon: Icon(icon),
-      onPressed: onPressed,
-      color: Colors.grey[400],
-      iconSize: 28,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        customBorder: const CircleBorder(),
+        child: Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.grey.withOpacity(0.1),
+          ),
+          child: Icon(
+            icon,
+            color: iconColor ?? Theme.of(context).iconTheme.color,
+            size: 24,
+          ),
+        ),
+      ),
     );
   }
 
