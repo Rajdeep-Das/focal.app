@@ -63,10 +63,22 @@ class FocalApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Focal',
-      theme: AppTheme.darkTheme,
-      home: const HomeScreen(),
+    return Consumer<SettingsProvider>(
+      builder: (context, settings, _) {
+        final themeMode = switch (settings.settings.theme) {
+          'dark' => ThemeMode.dark,
+          'light' => ThemeMode.light,
+          _ => ThemeMode.system,
+        };
+
+        return MaterialApp(
+          title: 'Focal',
+          themeMode: themeMode,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          home: const HomeScreen(),
+        );
+      },
     );
   }
 }
