@@ -372,8 +372,13 @@ class StatisticsScreen extends StatelessWidget {
   }
 
   String _formatDateTime(DateTime dateTime) {
-    final hour = dateTime.hour.toString().padLeft(2, '0');
+    final hour = dateTime.hour == 0 
+        ? 12 
+        : dateTime.hour > 12 
+            ? dateTime.hour - 12 
+            : dateTime.hour;
     final minute = dateTime.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
+    final period = dateTime.hour >= 12 ? 'PM' : 'AM';
+    return '$hour:$minute $period';
   }
 }
