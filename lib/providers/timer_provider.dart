@@ -8,6 +8,7 @@ import '../services/audio_service.dart';
 import '../repositories/session_repository.dart';
 import '../services/analytics_service.dart';
 import '../models/analytics_model.dart';
+import 'package:flutter/services.dart' show HapticFeedback;
 
 class TimerProvider with ChangeNotifier {
   int _timeLeft;
@@ -94,6 +95,10 @@ class TimerProvider with ChangeNotifier {
     // Play sound if enabled
     if (_settings.settings.soundEnabled) {
       _audioService.playTimerCompleteSound();
+    }
+
+    if (_settings.settings.vibrationEnabled) {
+      HapticFeedback.vibrate();
     }
 
     // Show notification

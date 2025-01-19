@@ -201,8 +201,9 @@ class StatisticsScreen extends StatelessWidget {
                         interval: 60,
                         reservedSize: 40, // More space for labels
                         getTitlesWidget: (value, meta) {
-                          if (value == weeklyStats.maxDailyMinutes + 60)
+                          if (value == weeklyStats.maxDailyMinutes + 60) {
                             return SizedBox.shrink();
+                          }
                           return Padding(
                             padding: EdgeInsets.only(right: 8),
                             child: Text(
