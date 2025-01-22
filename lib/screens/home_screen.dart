@@ -16,7 +16,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
@@ -25,10 +24,6 @@ class _HomeScreenState extends State<HomeScreen>
       duration: const Duration(milliseconds: 200),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(
-      begin: 1,
-      end: 0.95,
-    ).animate(_controller);
   }
 
   @override
@@ -99,47 +94,48 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildMainButton(TimerProvider timer) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTapDown: (_) => _controller.forward(),
-        onTapUp: (_) {
-          _controller.reverse();
-          if (timer.isRunning) {
-            timer.pauseTimer();
-          } else {
-            timer.startTimer();
-          }
-        },
-        onTapCancel: () => _controller.reverse(),
-        child: AnimatedBuilder(
-          animation: _scaleAnimation,
-          builder: (context, child) => Transform.scale(
-            scale: _scaleAnimation.value,
-            child: Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: timer.isRunning
-                    ? Colors.red.shade400
-                    : Colors.green.shade400,
-                boxShadow: [
-                  BoxShadow(
-                    color: (timer.isRunning ? Colors.red : Colors.green)
-                        .withOpacity(0.3),
-                    blurRadius: 8,
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
-              child: Icon(
-                timer.isRunning ? Icons.pause : Icons.play_arrow,
-                size: 40,
-                color: Colors.white,
-              ),
+    return GestureDetector(
+      onTap: () {
+        if (timer.isRunning) {
+          timer.pauseTimer();
+        } else {
+          timer.startTimer();
+        }
+        HapticFeedback.mediumImpact();
+      },
+      child: Material(
+        color: Colors.transparent,
+        child: Container(
+          width: 88,
+          height: 88,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: timer.isRunning
+                  ? [Colors.red.shade400, Colors.red.shade600]
+                  : [
+                      Theme.of(context).colorScheme.primary,
+                      Theme.of(context).colorScheme.secondary,
+                    ],
             ),
+            boxShadow: [
+              BoxShadow(
+                color: (timer.isRunning
+                        ? Colors.red
+                        : Theme.of(context).colorScheme.primary)
+                    .withOpacity(0.3),
+                blurRadius: 12,
+                spreadRadius: 0,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Icon(
+            timer.isRunning ? Icons.pause : Icons.play_arrow,
+            size: 36,
+            color: Colors.white,
           ),
         ),
       ),
@@ -151,31 +147,27 @@ class _HomeScreenState extends State<HomeScreen>
     required VoidCallback onPressed,
     Color? iconColor,
   }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onPressed,
-        customBorder: const CircleBorder(),
-        child: Container(
-          width: 56,
-          height: 56,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Theme.of(context).colorScheme.surface,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Icon(
-            icon,
-            color: iconColor ?? Theme.of(context).colorScheme.primary,
-            size: 24,
-          ),
+    return Container(
+      width: 56,
+      height: 56,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Theme.of(context).colorScheme.surface,
+        border: Border.all(
+          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: IconButton(
+        icon: Icon(icon),
+        onPressed: onPressed,
+        color: iconColor ?? Theme.of(context).colorScheme.primary,
       ),
     );
   }
