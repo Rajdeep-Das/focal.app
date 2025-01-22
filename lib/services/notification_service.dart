@@ -7,6 +7,18 @@ class NotificationService {
   FlutterLocalNotificationsPlugin get notifications => _notifications;
 
   Future<void> initialize() async {
+    const AndroidNotificationChannel channel = AndroidNotificationChannel(
+      'focal_timer_channel',
+      'Focal Timer',
+      description: 'Focal Timer notifications',
+      importance: Importance.high,
+    );
+
+    await _notifications
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(channel);
+
     const androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosSettings = DarwinInitializationSettings();
