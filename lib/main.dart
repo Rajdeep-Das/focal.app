@@ -10,6 +10,7 @@ import 'services/audio_service.dart';
 import 'services/analytics_service.dart';
 import 'repositories/session_repository.dart';
 import 'models/session_model.dart';
+import 'services/reminder_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,14 +29,16 @@ void main() async {
   final notificationService = NotificationService();
   await notificationService.initialize();
 
+  final reminderService = ReminderService(notificationService.notifications);
+  final settingsProvider =
+      SettingsProvider(notificationService, reminderService);
+  await settingsProvider.initialize();
+
   final audioService = AudioService();
   final sessionRepository = SessionRepository();
   await sessionRepository.initialize();
 
   final analyticsService = AnalyticsService(sessionRepository);
-
-  final settingsProvider = SettingsProvider();
-  await settingsProvider.initialize();
 
   runApp(
     MultiProvider(

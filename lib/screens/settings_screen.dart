@@ -86,22 +86,21 @@ class SettingsScreen extends StatelessWidget {
                     ),
                     value: settings.dailyReminder,
                     onChanged: (value) async {
-                      if (value && settings.reminderTime == null) {
+                      if (value) {
                         final time = await showTimePicker(
                           context: context,
-                          initialTime: const TimeOfDay(hour: 9, minute: 0),
+                          initialTime: settings.reminderTime ??
+                              const TimeOfDay(hour: 9, minute: 0),
                         );
                         if (time != null) {
-                          settingsProvider.updateSettings(
-                            settings.copyWith(
-                              dailyReminder: value,
-                              reminderTime: time,
-                            ),
+                          await settingsProvider.updateDailyReminder(
+                            enabled: true,
+                            time: time,
                           );
                         }
                       } else {
-                        settingsProvider.updateSettings(
-                          settings.copyWith(dailyReminder: value),
+                        await settingsProvider.updateDailyReminder(
+                          enabled: false,
                         );
                       }
                     },

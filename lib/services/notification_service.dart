@@ -4,6 +4,8 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _notifications =
       FlutterLocalNotificationsPlugin();
 
+  FlutterLocalNotificationsPlugin get notifications => _notifications;
+
   Future<void> initialize() async {
     const androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -38,5 +40,23 @@ class NotificationService {
       'Your focus session has completed.',
       details,
     );
+  }
+
+  Future<bool> requestPermissions() async {
+    final androidGranted = await _notifications
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.requestNotificationsPermission();
+
+    final iosGranted = await _notifications
+        .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin>()
+        ?.requestPermissions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
+
+    return (androidGranted ?? false) || (iosGranted ?? false);
   }
 }
