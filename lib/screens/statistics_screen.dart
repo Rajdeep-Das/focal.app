@@ -5,8 +5,38 @@ import '../providers/timer_provider.dart';
 import '../models/analytics_model.dart';
 import '../models/session_model.dart';
 
-class StatisticsScreen extends StatelessWidget {
+class StatisticsScreen extends StatefulWidget {
   const StatisticsScreen({super.key});
+
+  @override
+  State<StatisticsScreen> createState() => _StatisticsScreenState();
+}
+
+class _StatisticsScreenState extends State<StatisticsScreen>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    // Refresh statistics when screen is first shown
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<TimerProvider>(context, listen: false).refreshStatistics();
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Refresh statistics when app comes back to foreground
+      Provider.of<TimerProvider>(context, listen: false).refreshStatistics();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -372,10 +402,10 @@ class StatisticsScreen extends StatelessWidget {
   }
 
   String _formatDateTime(DateTime dateTime) {
-    final hour = dateTime.hour == 0 
-        ? 12 
-        : dateTime.hour > 12 
-            ? dateTime.hour - 12 
+    final hour = dateTime.hour == 0
+        ? 12
+        : dateTime.hour > 12
+            ? dateTime.hour - 12
             : dateTime.hour;
     final minute = dateTime.minute.toString().padLeft(2, '0');
     final period = dateTime.hour >= 12 ? 'PM' : 'AM';

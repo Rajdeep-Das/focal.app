@@ -41,7 +41,10 @@ class TimerProvider with ChangeNotifier {
   Future<void> refreshStatistics() async {
     _todayStats = await _analytics.getDailyStatistics(DateTime.now());
     _weeklyStats = await _analytics.getWeeklyAnalytics(
-        DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1)));
+      DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1)),
+    );
+    _sessions.clear();
+    _sessions.addAll(await _repository.getSessionsByDate(DateTime.now()));
     notifyListeners();
   }
 
@@ -78,31 +81,32 @@ class TimerProvider with ChangeNotifier {
     }
   }
 
-  void _handleTimerComplete() {
+  void _handleTimerComplete() async {
     _timer?.cancel();
     _isRunning = false;
+
+    // Create and save the completed session
     final session = Session(
-      startTime: DateTime.now().subtract(
-        Duration(minutes: _settings.settings.focusDuration),
-      ),
+      startTime: DateTime.now()
+          .subtract(Duration(minutes: _settings.settings.focusDuration)),
       endTime: DateTime.now(),
       status: SessionStatus.completed,
     );
 
-    _sessions.add(session);
-    _repository.saveSession(session);
+    await _repository.saveSession(session);
+    _sessions.insert(0, session);
 
-    // Play sound if enabled
+    // Refresh statistics immediately after session completion
+    await refreshStatistics();
+
+    // Handle notifications and feedback
     if (_settings.settings.soundEnabled) {
-      _audioService.playTimerCompleteSound();
+      await _audioService.playTimerCompleteSound();
     }
-
     if (_settings.settings.vibrationEnabled) {
-      HapticFeedback.vibrate();
+      HapticFeedback.mediumImpact();
     }
-
-    // Show notification
-    _notificationService.showTimerCompleteNotification();
+    await _notificationService.showTimerCompleteNotification();
 
     notifyListeners();
   }
