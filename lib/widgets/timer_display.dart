@@ -18,25 +18,62 @@ class TimerDisplay extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
-          style: const TextStyle(
-            fontSize: 80,
-            fontWeight: FontWeight.w300,
-            letterSpacing: -2,
+        Container(
+          width: 300,
+          height: 200,
+          padding: const EdgeInsets.symmetric(
+            horizontal: 40,
+            vertical: 30,
           ),
-        ),
-        const SizedBox(height: 16),
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 200),
-          child: Text(
-            isRunning ? 'Focus Time' : 'Ready to Focus?',
-            key: ValueKey(isRunning),
-            style: TextStyle(
-              fontSize: 20,
-              color: Colors.grey[400],
-              letterSpacing: 0.5,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.05),
             ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                height: 80,
+                child: Center(
+                  child: Text(
+                    '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
+                    style: TextStyle(
+                      fontSize: 72,
+                      fontWeight: FontWeight.w300,
+                      letterSpacing: -2,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                height: 20,
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  child: Text(
+                    isRunning ? 'FOCUS TIME' : 'READY TO FOCUS?',
+                    key: ValueKey(isRunning),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 1.5,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ],

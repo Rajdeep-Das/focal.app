@@ -5,14 +5,18 @@ class AppTheme {
   static ThemeData get darkTheme {
     return ThemeData.dark().copyWith(
       primaryColor: const Color(0xFF6B7FD7),
-      scaffoldBackgroundColor: const Color(0xFF1A1B1E),
-      textTheme: GoogleFonts.plusJakartaSansTextTheme(
+      scaffoldBackgroundColor: const Color(0xFF121417),
+      textTheme: GoogleFonts.interTextTheme(
         ThemeData.dark().textTheme,
+      ).apply(
+        bodyColor: Colors.white.withOpacity(0.87),
+        displayColor: Colors.white,
       ),
       colorScheme: const ColorScheme.dark(
         primary: Color(0xFF6B7FD7),
         secondary: Color(0xFF8E9FFF),
-        surface: Color(0xFF2A2B2F),
+        surface: Color(0xFF1E2126),
+        background: Color(0xFF121417),
         onSurface: Colors.white,
         error: Color(0xFFFF6B6B),
       ),
@@ -25,11 +29,14 @@ class AppTheme {
         ),
       ),
       cardTheme: CardTheme(
+        elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
+          side: BorderSide(
+            color: Colors.white.withOpacity(0.05),
+          ),
         ),
-        elevation: 0,
-        color: const Color(0xFF2A2B2F),
+        color: const Color(0xFF1E2126),
       ),
     );
   }

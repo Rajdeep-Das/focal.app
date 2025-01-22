@@ -161,11 +161,18 @@ class _HomeScreenState extends State<HomeScreen>
           height: 56,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Colors.grey.withOpacity(0.1),
+            color: Theme.of(context).colorScheme.surface,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Icon(
             icon,
-            color: iconColor ?? Theme.of(context).iconTheme.color,
+            color: iconColor ?? Theme.of(context).colorScheme.primary,
             size: 24,
           ),
         ),
