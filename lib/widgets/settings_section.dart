@@ -18,7 +18,7 @@ class SettingsSection extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: 16,
-            vertical: 8,
+            vertical: 12,
           ),
           child: Text(
             title.toUpperCase(),
@@ -26,17 +26,24 @@ class SettingsSection extends StatelessWidget {
               fontSize: 13,
               fontWeight: FontWeight.w600,
               color: Theme.of(context).colorScheme.primary,
-              letterSpacing: 0.5,
+              letterSpacing: 1.2,
             ),
           ),
         ),
         Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.05),
+            ),
           ),
-          child: Column(
-            children: children,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Column(
+              children: children,
+            ),
           ),
         ),
       ],
