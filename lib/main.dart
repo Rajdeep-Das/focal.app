@@ -80,6 +80,7 @@ class FocalApp extends StatelessWidget {
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           home: const HomeScreen(),
+          debugShowCheckedModeBanner: false,
         );
       },
     );
