@@ -8,7 +8,8 @@ import '../services/audio_service.dart';
 import '../repositories/session_repository.dart';
 import '../services/analytics_service.dart';
 import '../models/analytics_model.dart';
-import 'package:flutter/services.dart' show HapticFeedback;
+import 'package:flutter/services.dart'
+    show HapticFeedback, SystemChrome, SystemUiMode, SystemUiOverlay;
 
 class TimerProvider with ChangeNotifier {
   int _timeLeft;
@@ -55,20 +56,45 @@ class TimerProvider with ChangeNotifier {
         const Duration(seconds: 1),
         _timerCallback,
       );
+
+      // Keep screen on when timer starts
+      if (_settings.settings.keepScreenOn) {
+        SystemChrome.setEnabledSystemUIMode(
+          SystemUiMode.manual,
+          overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom],
+        );
+      }
+
       notifyListeners();
     }
   }
 
   void pauseTimer() {
-    _timer?.cancel();
-    _isRunning = false;
-    notifyListeners();
+    if (_isRunning) {
+      _timer?.cancel();
+      _isRunning = false;
+
+      // Allow screen to turn off when timer is paused
+      SystemChrome.setEnabledSystemUIMode(
+        SystemUiMode.manual,
+        overlays: SystemUiOverlay.values,
+      );
+
+      notifyListeners();
+    }
   }
 
   void resetTimer() {
     _timer?.cancel();
     _timeLeft = _settings.settings.focusDuration * 60;
     _isRunning = false;
+
+    // Allow screen to turn off when timer is reset
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.manual,
+      overlays: SystemUiOverlay.values,
+    );
+
     notifyListeners();
   }
 
@@ -114,6 +140,11 @@ class TimerProvider with ChangeNotifier {
   @override
   void dispose() {
     _timer?.cancel();
+    // Ensure screen can turn off when disposing
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.manual,
+      overlays: SystemUiOverlay.values,
+    );
     super.dispose();
   }
 }
