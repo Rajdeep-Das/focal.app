@@ -1,7 +1,9 @@
-import 'package:flutter/services.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 class AudioService {
+  final AudioPlayer _audioPlayer = AudioPlayer();
+
   Future<void> playTimerCompleteSound() async {
-    await SystemSound.play(SystemSoundType.alert);
+    await _audioPlayer.play(AssetSource('sounds/alert.wav'));
   }
 }
