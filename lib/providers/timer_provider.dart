@@ -9,7 +9,7 @@ import '../repositories/session_repository.dart';
 import '../services/analytics_service.dart';
 import '../models/analytics_model.dart';
 import 'package:flutter/services.dart'
-    show HapticFeedback, SystemChrome, SystemUiMode, SystemUiOverlay;
+    show SystemChrome, SystemUiMode, SystemUiOverlay, SystemChannels;
 
 class TimerProvider with ChangeNotifier {
   int _timeLeft;
@@ -130,7 +130,16 @@ class TimerProvider with ChangeNotifier {
       await _audioService.playTimerCompleteSound();
     }
     if (_settings.settings.vibrationEnabled) {
-      HapticFeedback.mediumImpact();
+      // Vibrate with a pattern: 500ms on, 100ms off, 500ms on
+      await SystemChannels.platform.invokeMethod<void>(
+        'HapticFeedback.vibrate',
+        'heavy',
+      );
+      await Future.delayed(const Duration(milliseconds: 100));
+      await SystemChannels.platform.invokeMethod<void>(
+        'HapticFeedback.vibrate',
+        'heavy',
+      );
     }
     await _notificationService.showTimerCompleteNotification();
 
