@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScreenX Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        #verification-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        #debug {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.8);
+            color: #0f0;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            max-width: 400px;
+            max-height: 300px;
+            overflow: auto;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div id="debug">Initializing...</div>
+    <iframe id="verification-iframe" src="https://demoiframe.screenx.ai/iframe-landing" allow="camera; microphone"></iframe>
+
+    <script>
+        const debugEl = document.getElementById('debug');
+        const iframe = document.getElementById('verification-iframe');
+        const targetOrigin = 'https://demoiframe.screenx.ai';
+        const token = 'lmTFyN8EmdRq2Sv3JSsgmVLQbXUgYuwb+ff5wHa3C6Hr4KLn/O7SFEhrfyABlMZ0KWqcSmjqn3q8bFvlAeERVtemFzCKdiO9tKNUwu4zNX9RX3lfyuEBRmcyitdArEEZcKsK0yAkVz9S1em+B/bg0qjMngFfSVi91kToKoM3kvpXeqlDqW2Zt6fT9P7QsNWPexBXT2pA0skkipMJLpm00PpHGg2RHi4PI4RD4nfsdjxbNseoKecuHBL8TslGQJTRZ42GZAa55k+IUKliw23LyaYjaEjuMAoiF8iIlf4TG3VydYYtjihHYBU1dpYVVmAMOBu4QGmEH4H48oDj0nl2JICeHTNNR0mUwKBpkKO4TEnpUNhxyak7dOW7RRHENQjuHt1zQLqK/PgzIR1rpHK3vK04KGilsXiGWN8i0lnAZNv7OODOLvTwPL0uNBu9yFpXZVJNGV2sfErm8SuB7Rg9+/h2i4S548qy868U5t5hnc2MHDRxEnAcZ/WkftHtkTKy+zixN0aKhiF6CGUesY85jBRnpz0cGIPEmfhaFwakRHzptzmajiDEqJOFoUYFnS1mkkupwIz5W/qNdqewq6AIcQ==';
+
+        function log(msg) {
+            const timestamp = new Date().toLocaleTimeString();
+            debugEl.innerHTML += `<br>[${timestamp}] ${msg}`;
+            debugEl.scrollTop = debugEl.scrollHeight;
+            console.log(msg);
+        }
+
+        log('Wrapper page loaded');
+        log(`Target Origin: ${targetOrigin}`);
+        log(`Token length: ${token.length}`);
+
+        // Listen for messages from the iframe
+        window.addEventListener('message', function(event) {
+            log(`📩 Received message from: ${event.origin}`);
+            log(`📩 Message type: ${event.data.type}`);
+            log(`📩 Full data: ${JSON.stringify(event.data)}`);
+
+            // Validate origin
+            if (event.origin !== targetOrigin) {
+                log(`⚠️  Invalid origin: ${event.origin}, expected: ${targetOrigin}`);
+                return;
+            }
+
+            // Handle different message types
+            switch(event.data.type) {
+                case 'iframe_ready':
+                    log('✅ Iframe is ready!');
+                    log('📤 Sending load_iframe...');
+                    setTimeout(() => {
+                        sendToIframe({ type: 'load_iframe' });
+                    }, 100);
+                    break;
+
+                case 'iframe_loaded':
+                    log('✅ Iframe loaded!');
+                    log('📤 Sending initialize with token...');
+                    sendToIframe({
+                        type: 'initialize',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'X-Trigger-Type': 'skill_verification'
+                        }
+                    });
+                    break;
+
+                case 'auth_success':
+                    log('✅ Authentication successful!');
+                    log('📤 Sending candidate data...');
+                    sendToIframe({
+                        type: 'candidate_data',
+                        payload: {
+                            candidateId: 'C123456',
+                            firstName: 'John',
+                            lastName: 'Doe',
+                            dateOfBirth: '1990-01-01',
+                            email: 'john.doe@example.com',
+                            phone: '+91 9876543210',
+                            gender: 0,
+                            jobTitle: 'Software Engineer',
+                            skills: ['Angular', 'React.js', 'SQL'],
+                            experience: 5
+                        }
+                    });
+                    break;
+
+                case 'auth_error':
+                    log(`❌ Auth error: ${JSON.stringify(event.data)}`);
+                    break;
+
+                case 'verification_complete':
+                    log('✅ Verification complete!');
+                    break;
+
+                default:
+                    log(`ℹ️  Unknown message type: ${event.data.type}`);
+            }
+        });
+
+        // Function to send messages to iframe
+        function sendToIframe(message) {
+            log(`📤 Sending to iframe: ${JSON.stringify(message).substring(0, 100)}...`);
+            try {
+                if (iframe && iframe.contentWindow) {
+                    iframe.contentWindow.postMessage(message, targetOrigin);
+                    log('✅ Message sent successfully');
+                } else {
+                    log('❌ Iframe or contentWindow not available');
+                }
+            } catch (e) {
+                log(`❌ Error sending message: ${e}`);
+            }
+        }
+
+        log('Wrapper ready, waiting for iframe...');
+    </script>
+</body>
+</html>

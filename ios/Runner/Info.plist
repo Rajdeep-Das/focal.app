@@ -50,5 +50,11 @@
 			<string>fetch</string>
 			<string>remote-notification</string>
 		</array>
+		<key>NSCameraUsageDescription</key>
+		<string>This app needs camera access for skills verification assessments</string>
+		<key>NSMicrophoneUsageDescription</key>
+		<string>This app needs microphone access for skills verification assessments</string>
+		<key>io.flutter.embedded_views_preview</key>
+		<true/>
 	</dict>
 </plist>

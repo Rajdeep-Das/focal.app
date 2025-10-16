@@ -16,7 +16,6 @@ class AppTheme {
         primary: Color(0xFF8B9FFF),
         secondary: Color(0xFFB8C4FF),
         surface: Color(0xFF151820),
-        background: Color(0xFF0A0C10),
         onSurface: Colors.white,
         error: Color(0xFFFF6B6B),
       ),

@@ -4,6 +4,8 @@ import '../providers/timer_provider.dart';
 import '../widgets/timer_display.dart';
 import 'settings_screen.dart';
 import 'statistics_screen.dart';
+import 'candidate_profile_screen.dart';
+import '../models/candidate_model.dart';
 import 'package:flutter/services.dart' show HapticFeedback;
 
 class HomeScreen extends StatefulWidget {
@@ -34,6 +36,18 @@ class _HomeScreenState extends State<HomeScreen>
           appBar: AppBar(
             title: const Text('Focal Timer'),
             actions: [
+              IconButton(
+                icon: const Icon(Icons.shield_outlined),
+                tooltip: 'Skills Verification',
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CandidateProfileScreen(
+                      candidate: CandidateModel.example,
+                    ),
+                  ),
+                ),
+              ),
               IconButton(
                 icon: const Icon(Icons.bar_chart),
                 onPressed: () => Navigator.push(

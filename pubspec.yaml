@@ -42,6 +42,8 @@ dependencies:
   hive_flutter: ^1.1.0
   fl_chart: ^0.66.2 # For statistics charts
   timezone: ^0.9.2
+  flutter_inappwebview: ^6.1.5
+  http: ^1.2.0
 
 dev_dependencies:
   flutter_test:
