@@ -88,8 +88,13 @@ class _SkillsVerificationScreenState extends State<SkillsVerificationScreen> {
       _isFullscreen = true;
     });
 
-    // Set landscape orientation for better viewing
+    // Hide system UI for true fullscreen experience
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+
+    // Allow all orientations - let the content determine the best orientation
     SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
       DeviceOrientation.landscapeRight,
       DeviceOrientation.landscapeLeft,
     ]);
@@ -101,7 +106,10 @@ class _SkillsVerificationScreenState extends State<SkillsVerificationScreen> {
       _isFullscreen = false;
     });
 
-    // Restore all orientations
+    // Restore system UI
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+
+    // Keep all orientations available
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
@@ -116,17 +124,30 @@ class _SkillsVerificationScreenState extends State<SkillsVerificationScreen> {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Skills Verification Integration</title>
     <style>
-        body {
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+            position: fixed;
         }
         #screenxFrame {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            height: 100vh;
+            height: 100%;
             border: none;
+            display: block;
         }
     </style>
 </head>
@@ -823,8 +844,70 @@ class _SkillsVerificationScreenState extends State<SkillsVerificationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // InAppWebView handles fullscreen internally when onEnterFullscreen is called
-    // We don't need to manually show/hide AppBar anymore
+    // Build the WebView widget
+    final webView = _status == VerificationStatus.error
+        ? Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    size: 64,
+                    color: Colors.red[300],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Verification Failed',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _errorMessage ?? 'An error occurred',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.grey),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        _status = VerificationStatus.loading;
+                        _errorMessage = null;
+                      });
+                    },
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Retry'),
+                  ),
+                ],
+              ),
+            ),
+          )
+        : InAppWebView(
+            initialSettings: _settings,
+            initialData: InAppWebViewInitialData(
+              data: _getWrapperHtml(),
+              baseUrl: WebUri('https://demoiframe.screenx.ai'),
+            ),
+            onWebViewCreated: _handleWebViewCreated,
+            onLoadStop: _handleLoadStop,
+            onReceivedError: _handleLoadError,
+            onEnterFullscreen: _handleEnterFullscreen,
+            onExitFullscreen: _handleExitFullscreen,
+            onConsoleMessage: (controller, consoleMessage) {
+              debugPrint('Console: ${consoleMessage.message}');
+            },
+            onLoadStart: (controller, url) {
+              debugPrint('Page started loading: $url');
+            },
+          );
+
+    // In fullscreen mode, return just the WebView without any UI chrome
+    if (_isFullscreen) {
+      return Scaffold(
+        body: webView,
+      );
+    }
 
     // Normal mode with AppBar and status indicator
     return Scaffold(
@@ -900,62 +983,7 @@ class _SkillsVerificationScreenState extends State<SkillsVerificationScreen> {
 
           // WebView
           Expanded(
-            child: _status == VerificationStatus.error
-                ? Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.error_outline,
-                            size: 64,
-                            color: Colors.red[300],
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Verification Failed',
-                            style: Theme.of(context).textTheme.headlineSmall,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            _errorMessage ?? 'An error occurred',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(color: Colors.grey),
-                          ),
-                          const SizedBox(height: 24),
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              setState(() {
-                                _status = VerificationStatus.loading;
-                                _errorMessage = null;
-                              });
-                            },
-                            icon: const Icon(Icons.refresh),
-                            label: const Text('Retry'),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                : InAppWebView(
-                    initialSettings: _settings,
-                    initialData: InAppWebViewInitialData(
-                      data: _getWrapperHtml(),
-                      baseUrl: WebUri('https://demoiframe.screenx.ai'),
-                    ),
-                    onWebViewCreated: _handleWebViewCreated,
-                    onLoadStop: _handleLoadStop,
-                    onReceivedError: _handleLoadError,
-                    onEnterFullscreen: _handleEnterFullscreen,
-                    onExitFullscreen: _handleExitFullscreen,
-                    onConsoleMessage: (controller, consoleMessage) {
-                      debugPrint('Console: ${consoleMessage.message}');
-                    },
-                    onLoadStart: (controller, url) {
-                      debugPrint('Page started loading: $url');
-                    },
-                  ),
+            child: webView,
           ),
         ],
       ),
