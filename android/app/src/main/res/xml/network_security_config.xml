@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Debug configuration: Trust all certificates including self-signed ones -->
+    <!-- WARNING: This is for development only. Remove for production! -->
+    <debug-overrides>
+        <trust-anchors>
+            <!-- Trust system certificates -->
+            <certificates src="system" />
+            <!-- Trust user-installed certificates -->
+            <certificates src="user" />
+        </trust-anchors>
+    </debug-overrides>
+
+    <!-- Base configuration for all connections -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <!-- Trust system certificates -->
+            <certificates src="system" />
+            <!-- Trust user-installed certificates (required for Android 10 and custom certs) -->
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+
+    <!-- Domain-specific configuration for ScreenX and OfferX services -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">screenx.ai</domain>
+        <domain includeSubdomains="true">demoiframe.screenx.ai</domain>
+        <domain includeSubdomains="true">offerx.in</domain>
+        <domain includeSubdomains="true">dev-offerhistory.offerx.in</domain>
+        <domain includeSubdomains="true">offerx.global</domain>
+        <domain includeSubdomains="true">dev-reviews.offerx.global</domain>
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </domain-config>
+
+    <!-- For development/testing: Allow cleartext traffic for localhost -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">127.0.0.1</domain>
+        <domain includeSubdomains="true">10.0.2.2</domain>
+    </domain-config>
+</network-security-config>

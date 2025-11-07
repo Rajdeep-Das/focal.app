@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import '../models/candidate_model.dart';
 import '../services/screenx_api_service.dart';
+import 'offer_history_screen.dart';
 
 enum VerificationStatus {
   loading,
@@ -49,6 +51,8 @@ class _SkillsVerificationScreenState extends State<SkillsVerificationScreen> {
     mediaPlaybackRequiresUserGesture: false,
     allowsInlineMediaPlayback: true,
     useHybridComposition: true,
+    // Allow mixed content for development
+    mixedContentMode: MixedContentMode.MIXED_CONTENT_ALWAYS_ALLOW,
   );
 
   @override
@@ -812,6 +816,22 @@ class _SkillsVerificationScreenState extends State<SkillsVerificationScreen> {
     });
   }
 
+  Future<ServerTrustAuthResponse?> _handleServerTrustAuth(
+      InAppWebViewController controller,
+      URLAuthenticationChallenge challenge) async {
+    // Only bypass SSL in debug mode
+    if (kDebugMode) {
+      debugPrint('⚠️ DEBUG MODE: Bypassing SSL certificate validation for ${challenge.protectionSpace.host}');
+      return ServerTrustAuthResponse(
+        action: ServerTrustAuthResponseAction.PROCEED,
+      );
+    }
+    // In release mode, use default behavior (validate certificates)
+    return ServerTrustAuthResponse(
+      action: ServerTrustAuthResponseAction.CANCEL,
+    );
+  }
+
   Color _getStatusColor() {
     switch (_status) {
       case VerificationStatus.loading:
@@ -892,6 +912,7 @@ class _SkillsVerificationScreenState extends State<SkillsVerificationScreen> {
             onWebViewCreated: _handleWebViewCreated,
             onLoadStop: _handleLoadStop,
             onReceivedError: _handleLoadError,
+            onReceivedServerTrustAuthRequest: _handleServerTrustAuth,
             onEnterFullscreen: _handleEnterFullscreen,
             onExitFullscreen: _handleExitFullscreen,
             onConsoleMessage: (controller, consoleMessage) {
@@ -914,6 +935,20 @@ class _SkillsVerificationScreenState extends State<SkillsVerificationScreen> {
       appBar: AppBar(
         title: const Text('Skills Verification'),
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.history),
+            tooltip: 'Show Offer History',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const OfferHistoryScreen(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [

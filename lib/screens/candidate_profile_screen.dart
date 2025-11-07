@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/candidate_model.dart';
 import 'skills_verification_screen.dart';
+import 'offer_history_screen.dart';
 
 class CandidateProfileScreen extends StatelessWidget {
   final CandidateModel candidate;
@@ -130,6 +131,82 @@ class CandidateProfileScreen extends StatelessWidget {
                           label: const Text('Skills Unverified'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.orange[700],
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 14,
+                              horizontal: 24,
+                            ),
+                            textStyle: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            // Offer History section
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Card(
+                elevation: 2,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.history,
+                            color: Colors.blue[700],
+                            size: 28,
+                          ),
+                          const SizedBox(width: 12),
+                          const Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Offer History',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                SizedBox(height: 4),
+                                Text(
+                                  'View your offer history and reviews',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const OfferHistoryScreen(),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.visibility),
+                          label: const Text('Show Offer History'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue[700],
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(
                               vertical: 14,
