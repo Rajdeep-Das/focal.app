@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -597,18 +596,50 @@ class _SkillsVerificationScreenState extends State<SkillsVerificationScreen> {
     }
     _lastAssessmentResumed = now;
 
+    // Extract payload to understand if this is a resume or new assessment
+    final payload = data['payload'] as Map<String, dynamic>?;
+    final isResuming = payload?['isResuming'] as bool? ?? false;
+    final assessmentId = payload?['assessmentId'] as String?;
+    final resumeToken = payload?['resumeToken'] as String?;
+
+    debugPrint(
+        'Assessment details - isResuming: $isResuming, assessmentId: $assessmentId, resumeToken: $resumeToken');
+
     // The assessment is trying to resume/start
     // If we're not in fullscreen yet, activate it
     if (!_isFullscreen) {
-      debugPrint('Assessment resumed but not in fullscreen - activating fullscreen');
+      debugPrint(
+          'Assessment resumed but not in fullscreen - activating fullscreen');
       _handleFullscreenRequest();
     } else {
       debugPrint('Assessment resumed and already in fullscreen - continuing');
     }
 
-    // Don't acknowledge - let the iframe continue on its own
-    // The acknowledgment might be causing it to retry
-    debugPrint('Not sending acknowledgment - letting iframe proceed');
+    // Send acknowledgment back to the iframe to confirm resume
+    // This tells the iframe to continue with the existing assessment instead of restarting
+    debugPrint('Sending resume acknowledgment to iframe');
+
+    // Send the primary acknowledgment
+    _postMessageToIframe({
+      'type': 'assessment_resume_acknowledged',
+      'payload': {
+        'continue': true,
+        'isResuming': isResuming,
+        'assessmentId': assessmentId,
+        'resumeToken': resumeToken,
+      }
+    });
+
+    // Also send alternative message formats that the iframe might expect
+    Future.delayed(const Duration(milliseconds: 100), () {
+      _postMessageToIframe({
+        'type': 'resume_confirmed',
+        'payload': {
+          'action': 'continue',
+          'assessmentId': assessmentId,
+        }
+      });
+    });
   }
 
   void _handleFullscreenError(Map<String, dynamic> data) {
@@ -640,7 +671,8 @@ class _SkillsVerificationScreenState extends State<SkillsVerificationScreen> {
       return;
     }
 
-    debugPrint('Not in fullscreen yet - handling error by activating fullscreen');
+    debugPrint(
+        'Not in fullscreen yet - handling error by activating fullscreen');
     // The iframe tried to use native fullscreen API and failed
     // We'll handle it at the Flutter level instead
     _handleFullscreenRequest();
@@ -820,12 +852,12 @@ class _SkillsVerificationScreenState extends State<SkillsVerificationScreen> {
       InAppWebViewController controller,
       URLAuthenticationChallenge challenge) async {
     // Only bypass SSL in debug mode
-    if (kDebugMode) {
-      debugPrint('⚠️ DEBUG MODE: Bypassing SSL certificate validation for ${challenge.protectionSpace.host}');
-      return ServerTrustAuthResponse(
-        action: ServerTrustAuthResponseAction.PROCEED,
-      );
-    }
+    // if (kDebugMode) {
+    //   debugPrint('⚠️ DEBUG MODE: Bypassing SSL certificate validation for ${challenge.protectionSpace.host}');
+    //   return ServerTrustAuthResponse(
+    //     action: ServerTrustAuthResponseAction.PROCEED,
+    //   );
+    // }
     // In release mode, use default behavior (validate certificates)
     return ServerTrustAuthResponse(
       action: ServerTrustAuthResponseAction.CANCEL,

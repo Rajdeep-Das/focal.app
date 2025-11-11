@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
@@ -217,12 +216,12 @@ class _OfferHistoryScreenState extends State<OfferHistoryScreen> {
       InAppWebViewController controller,
       URLAuthenticationChallenge challenge) async {
     // Only bypass SSL in debug mode
-    if (kDebugMode) {
-      debugPrint('⚠️ DEBUG MODE: Bypassing SSL certificate validation for ${challenge.protectionSpace.host}');
-      return ServerTrustAuthResponse(
-        action: ServerTrustAuthResponseAction.PROCEED,
-      );
-    }
+    // if (kDebugMode) {
+    //   debugPrint('⚠️ DEBUG MODE: Bypassing SSL certificate validation for ${challenge.protectionSpace.host}');
+    //   return ServerTrustAuthResponse(
+    //     action: ServerTrustAuthResponseAction.PROCEED,
+    //   );
+    // }
     // In release mode, use default behavior (validate certificates)
     return ServerTrustAuthResponse(
       action: ServerTrustAuthResponseAction.CANCEL,

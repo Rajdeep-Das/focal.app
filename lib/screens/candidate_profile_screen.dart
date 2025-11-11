@@ -1,15 +1,66 @@
 import 'package:flutter/material.dart';
 import '../models/candidate_model.dart';
+import '../services/screenx_api_service.dart';
 import 'skills_verification_screen.dart';
 import 'offer_history_screen.dart';
 
-class CandidateProfileScreen extends StatelessWidget {
+class CandidateProfileScreen extends StatefulWidget {
   final CandidateModel candidate;
 
   const CandidateProfileScreen({
     super.key,
     required this.candidate,
   });
+
+  @override
+  State<CandidateProfileScreen> createState() => _CandidateProfileScreenState();
+}
+
+class _CandidateProfileScreenState extends State<CandidateProfileScreen> {
+  final ScreenXApiService _apiService = ScreenXApiService();
+  bool _isCallingConsentApi = false;
+
+  Future<void> _callConsentAcceptanceApi() async {
+    setState(() {
+      _isCallingConsentApi = true;
+    });
+
+    try {
+      debugPrint('Calling Candidate Consent Acceptance API...');
+      final response = await _apiService.candidateConsentAcceptance();
+      debugPrint('API call completed successfully');
+      debugPrint('Response: $response');
+
+      // Show a success snackbar
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'API called successfully! Status: ${response['statusCode']}'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('API call failed: $e');
+
+      // Show an error snackbar
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('API call failed: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isCallingConsentApi = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +93,7 @@ class CandidateProfileScreen extends StatelessWidget {
                     radius: 50,
                     backgroundColor: Colors.white,
                     child: Text(
-                      '${candidate.firstName[0]}${candidate.lastName[0]}',
+                      '${widget.candidate.firstName[0]}${widget.candidate.lastName[0]}',
                       style: TextStyle(
                         fontSize: 36,
                         fontWeight: FontWeight.bold,
@@ -52,7 +103,7 @@ class CandidateProfileScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    '${candidate.firstName} ${candidate.lastName}',
+                    '${widget.candidate.firstName} ${widget.candidate.lastName}',
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -61,7 +112,7 @@ class CandidateProfileScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    candidate.jobTitle,
+                    widget.candidate.jobTitle,
                     style: const TextStyle(
                       fontSize: 16,
                       color: Colors.white70,
@@ -122,7 +173,7 @@ class CandidateProfileScreen extends StatelessWidget {
                               context,
                               MaterialPageRoute(
                                 builder: (context) => SkillsVerificationScreen(
-                                  candidate: candidate,
+                                  candidate: widget.candidate,
                                 ),
                               ),
                             );
@@ -225,21 +276,99 @@ class CandidateProfileScreen extends StatelessWidget {
               ),
             ),
 
+            // Consent API Test section
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Card(
+                elevation: 2,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.api,
+                            color: Colors.green[700],
+                            size: 28,
+                          ),
+                          const SizedBox(width: 12),
+                          const Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Consent Acceptance',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                SizedBox(height: 4),
+                                Text(
+                                  'Test the consent acceptance API',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: _isCallingConsentApi ? null : _callConsentAcceptanceApi,
+                          icon: _isCallingConsentApi
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  ),
+                                )
+                              : const Icon(Icons.check_circle_outline),
+                          label: Text(_isCallingConsentApi ? 'Calling API...' : 'Call Consent API'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green[700],
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 14,
+                              horizontal: 24,
+                            ),
+                            textStyle: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
             // Personal information
             _buildSection(
               context,
               title: 'Personal Information',
               icon: Icons.person_outline,
               children: [
-                _buildInfoRow('Candidate ID', candidate.candidateId),
-                _buildInfoRow('Email', candidate.email),
-                _buildInfoRow('Phone', candidate.phone),
-                _buildInfoRow('Date of Birth', candidate.dateOfBirth),
+                _buildInfoRow('Candidate ID', widget.candidate.candidateId),
+                _buildInfoRow('Email', widget.candidate.email),
+                _buildInfoRow('Phone', widget.candidate.phone),
+                _buildInfoRow('Date of Birth', widget.candidate.dateOfBirth),
                 _buildInfoRow(
                   'Gender',
-                  candidate.gender == 0
+                  widget.candidate.gender == 0
                       ? 'Male'
-                      : candidate.gender == 1
+                      : widget.candidate.gender == 1
                           ? 'Female'
                           : 'Other',
                 ),
@@ -252,8 +381,8 @@ class CandidateProfileScreen extends StatelessWidget {
               title: 'Professional Information',
               icon: Icons.work_outline,
               children: [
-                _buildInfoRow('Job Title', candidate.jobTitle),
-                _buildInfoRow('Experience', '${candidate.experience} years'),
+                _buildInfoRow('Job Title', widget.candidate.jobTitle),
+                _buildInfoRow('Experience', '${widget.candidate.experience} years'),
               ],
             ),
 
@@ -266,7 +395,7 @@ class CandidateProfileScreen extends StatelessWidget {
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: candidate.skills
+                  children: widget.candidate.skills
                       .map(
                         (skill) => Chip(
                           label: Text(skill),

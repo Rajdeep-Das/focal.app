@@ -63,7 +63,7 @@ class CandidateModel {
         phone: '+91 9876543210',
         gender: 0,
         jobTitle: 'Software Engineer',
-        skills: ['Angular', 'React.js', 'SQL'],
+        skills: ['Azure', 'SQL'],
         experience: 5,
       );
 }
