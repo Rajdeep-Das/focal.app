@@ -38,8 +38,8 @@ class _OfferHistoryScreenState extends State<OfferHistoryScreen> {
     cacheEnabled: true,
     clearCache: false,
     // DOM storage
-    domStorageEnabled: true,
-    databaseEnabled: true,
+    //domStorageEnabled: true,
+    //databaseEnabled: true,
   );
 
   @override
@@ -185,6 +185,10 @@ class _OfferHistoryScreenState extends State<OfferHistoryScreen> {
     const debugOverlay = document.getElementById("debugOverlay");
     let debugLogs = [];
 
+    // New implementation to handle READY message from iframe
+    let isIframeReady = false;
+    let latestToken = null;
+
     function toggleDebug() {
       debugOverlay.classList.toggle('show');
       const btn = document.getElementById('debugToggle');
@@ -211,152 +215,129 @@ class _OfferHistoryScreenState extends State<OfferHistoryScreen> {
 
     sendLog("IFRAME_URL: " + IFRAME_URL);
 
-    function safePostMessage(message, targetOrigin) {
-      try {
-        sendLog("📤 Attempting to send postMessage: " + JSON.stringify(message) + " → " + targetOrigin);
-
-        if (!iframe) {
-          console.error("❌ iframe element not found");
-          sendLog("❌ iframe element not found");
-          return;
-        }
-
-        if (!iframe.contentWindow) {
-          console.error("⚠️ iframe.contentWindow not available yet");
-          sendLog("⚠️ iframe.contentWindow not available yet");
-          return;
-        }
-
-        iframe.contentWindow.postMessage(message, targetOrigin);
-        console.log("✅ postMessage executed successfully");
-        sendLog("✅ postMessage executed successfully with: " + JSON.stringify(message));
-      } catch (err) {
-        console.error("💥 Error in postMessage:", err);
-        sendLog("💥 Error in postMessage: " + err.message);
+    function sendPayload() {
+      if (!iframe.contentWindow) {
+        sendLog("❌ iframe.contentWindow not available");
+        return;
       }
-    }
 
-    async function generateAsyncToken() {
-      try {
-        const message = {
-          apiPayload: [
-            {
-              iframeType: "offerHistory",
-              token: "nRxD/od/IW4qmGb0flA2CFFe3DBkb/rOuLllCQ+hgDgxJyodMeCwXtIXbAMikzbfvCa44VmMhk1HRuZUYwsBVgJuh89Ssua60UbwdrXjOA5bc5w2DlwHP9PPHng6HZaOKfPLfNv++5816zbjxkwgO5drEHMJT5Cbd7rcJJ6yJO03A3OA/UPhGCQ1DeyEhHedoWpxpqwp/BMsqmxmZ3cJ+MIQB7ByA5YCmVoVGAefZTn4wkT9ggejIeZDflY+ynNCA0v2d+sF/MUSld4GUr/8tmXPvYHH20/rmEhn6xndDiBOFfv/1BbDTQkWyjkhZUgbVD7HvyfKn2LOpOridPIAOrvQ/OEQMKZkId4xZe/4rrTCqBl/VvyYjuQj6y6EQssjWbK2Pa4dansXja1TgLv/IUsZCeauB113BCRMPK/3d4hqWGVLS80DNsC/m4fH0LRjFuUeo/Ku9XPMyFuJ9DjfnQ/h4sJWMLTSky2gFnslqX4IdQCxS37jUsgZQR5yJws7FNcgb4cddixgYNzxO0ubJVaiHfFduLf01PDGxeiq2ddjD9gNVOx8yzYtmW9TSyKrcO2oe7Gsv5hJ4Zib1H5JJhPQGrZ7G75hXZrQeOdiUCMGOGr9RfKQCfxrQqWPrIbmxz+wyVguqQx/jloqO1urrIiMLRgtR/whCfQm31E4QvH7rBWQQlmPXlDUem7OsgOpDPAzKcT2LSRg67FfCyUUs/1vz12Vbvi/YVkf8Anb6PIUmWV4EPS2h+dNP4a+PgOTJKjcBA9ouYOrdDU3Ch3GbWDQxgPTqgl4xPsB+AzZm5/GAgGIymOYTUxix5qHm3pzAHTzAmacqUE5N3Irofq1k+vUwcGv0G88VJesJHjMFvmV+qeUma9mv0lDd8IFG6eIcBdzPxaVxKw62VAhNEzTnO5DCjyefy6OY6MesAE9sdP8rp1NSOljzr06jvzzFzQCWrEMY67BbcOoGiBbAGJwww==",
-              payLoad: {
-                companyName: "Aspiriasdasdsas Limited",
-                companyEmail: "testketni2@gmail.com",
-                companyWebsite: "https://www.aspire.com",
-                ownerFirstName: "John",
-                ownerLastName: "Doe",
-                companyOwnerPhone: "2548758458",
-                candidateName: "Jane Smith",
-                candidatePhone: "5555555874",
-                companyOwnerEmail: "testketni2@gmail.com",
-                candidateEmail: "loadtest49@gmail.com",
-              },
+      const message = {
+        apiPayload: [
+          {
+            iframeType: "offerHistory",
+            token: latestToken,
+            payLoad: {
+              companyName: "Aspiriasdasdsas Limited",
+              companyEmail: "testketni2@gmail.com",
+              companyWebsite: "https://www.aspire.com",
+              ownerFirstName: "John",
+              ownerLastName: "Doe",
+              companyOwnerPhone: "2548758458",
+              candidateName: "Jane Smith",
+              candidatePhone: "5555555874",
+              companyOwnerEmail: "testketni2@gmail.com",
+              candidateEmail: "loadtest49@gmail.com",
             },
-          ],
-        };
-        sendLog("📦 Sending initial postMessage");
-        safePostMessage(message, TARGET_ORIGIN);
+          },
+        ],
+      };
 
-        // Retry mechanism - iframe might not be ready on first send
-        sendLog("⏱️ Setting up retry mechanism");
-        setTimeout(() => {
-          sendLog("🔁 Retry 1: Sending postMessage");
-          safePostMessage(message, TARGET_ORIGIN);
-        }, 500);
-
-        setTimeout(() => {
-          sendLog("🔁 Retry 2: Sending postMessage");
-          safePostMessage(message, TARGET_ORIGIN);
-        }, 1000);
-
-        setTimeout(() => {
-          sendLog("🔁 Retry 3: Sending postMessage");
-          safePostMessage(message, TARGET_ORIGIN);
-        }, 2000);
-
-        setTimeout(() => {
-          sendLog("🔁 Retry 4: Sending postMessage");
-          safePostMessage(message, TARGET_ORIGIN);
-        }, 3000);
-
-        console.log("Offer History message sent with retries");
+      try {
+        sendLog("📤 Sending payload to iframe");
+        iframe.contentWindow.postMessage(message, TARGET_ORIGIN);
+        sendLog("✅ Payload sent successfully");
       } catch (err) {
-        sendLog("❌ Error generating token or sending message: " + err);
-        console.error("Error generating token or sending message:", err);
+        sendLog("❌ Error sending payload: " + err.message);
+        console.error("Error sending payload:", err);
       }
     }
 
-    function checkIframeStatus() {
+    async function fetchToken() {
       try {
-        sendLog("🔍 Checking iframe status...");
-        sendLog("🔍 iframe.src: " + iframe.src);
-        sendLog("🔍 iframe.contentWindow exists: " + (iframe.contentWindow !== null));
+        sendLog("🔑 Fetching token from API...");
+        const response = await fetch(
+          "https://devopenapi.offerx.global/GenerateTokenAsync",
+          { method: "POST" }
+        );
+        const data = await response.json();
+        latestToken = data?.resultObject?.accessToken;
 
-        // Try to check if iframe has loaded content
-        setTimeout(() => {
-          try {
-            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-            sendLog("🔍 iframe readyState: " + iframeDoc.readyState);
-          } catch (e) {
-            sendLog("🔍 Cannot access iframe document (CORS): " + e.message);
-          }
-        }, 1000);
-      } catch (err) {
-        sendLog("❌ Error checking iframe status: " + err.message);
+        if (!latestToken) {
+          sendLog("❌ Failed to retrieve token");
+          console.error("Failed to retrieve token");
+          return;
+        }
+
+        sendLog("✅ Token received successfully");
+
+        // If iframe is already ready, send payload immediately
+        if (isIframeReady) {
+          sendLog("🚀 Iframe already ready, sending payload");
+          sendPayload();
+        }
+      } catch (error) {
+        sendLog("❌ Token generation failed: " + error.message);
+        console.error("Token generation failed:", error);
       }
     }
 
     function launchIframe() {
       sendLog("🚀 Loading iframe...");
-      iframe.src = "about:blank";
-      setTimeout(() => {
-        sendLog("🌐 Setting iframe src to: " + IFRAME_URL);
-        iframe.src = IFRAME_URL;
-        iframe.onload = function() {
-          sendLog("✅ iframe.onload fired!");
-          checkIframeStatus();
-          // Wait a bit more before sending postMessage to ensure iframe is fully rendered
-          setTimeout(() => {
-            sendLog("🎯 iframe should be ready now, sending data");
-            generateAsyncToken();
-          }, 1000);
-        };
-        iframe.onerror = function(err) {
-          sendLog("❌ iframe.onerror fired: " + JSON.stringify(err));
-        };
-        sendLog("iframe URL set: " + iframe.src);
-      }, 100);
+      // Add cache-busting timestamp like in React Native code
+      iframe.src = IFRAME_URL + "?t=" + Date.now();
+      sendLog("🌐 iframe URL set: " + iframe.src);
+
+      iframe.onload = function() {
+        sendLog("✅ iframe.onload fired - waiting for READY message from iframe");
+      };
+
+      iframe.onerror = function(err) {
+        sendLog("❌ iframe.onerror fired: " + JSON.stringify(err));
+      };
     }
 
-    // Listen for messages from iframe
+    // New implementation to handle READY message from iframe (similar to React Native code)
     window.addEventListener('message', function(event) {
       sendLog('📥 Received message from origin: ' + event.origin);
-      sendLog('📥 Message data: ' + JSON.stringify(event.data));
+      sendLog('📥 Message type: ' + (event.data?.type || 'unknown'));
 
       if (event.origin !== TARGET_ORIGIN) {
         console.warn('⚠️ Message from untrusted origin:', event.origin);
         sendLog('⚠️ Expected: ' + TARGET_ORIGIN + ', Got: ' + event.origin);
-        // Don't return - still log it for debugging
+        return;
       }
 
-      sendLog('✅ Message from iframe accepted: ' + JSON.stringify(event.data));
+      // Handle READY message from iframe
+      if (event.data?.type === 'READY') {
+        sendLog('✅ Received READY message from iframe!');
+        isIframeReady = true;
+
+        // Send acknowledgment back to iframe
+        event.source.postMessage({ type: 'ACK_PARENT' }, TARGET_ORIGIN);
+        sendLog('📤 Sent ACK_PARENT to iframe');
+
+        // If we have token, send payload. Otherwise fetch it first.
+        if (latestToken) {
+          sendLog('🚀 Token available, sending payload now');
+          sendPayload();
+        } else {
+          sendLog('🔑 Token not available, fetching it first');
+          fetchToken();
+        }
+      } else {
+        sendLog('📩 Other message from iframe: ' + JSON.stringify(event.data));
+      }
     });
 
-    document.addEventListener("DOMContentLoaded", () => {
-      sendLog("Starting automatic integration...");
+    // Start loading iframe when window loads
+    window.onload = function() {
+      sendLog("🎬 Window loaded, launching iframe...");
       launchIframe();
-    });
+    };
 
-    // Start immediately if DOMContentLoaded already fired
-    if (document.readyState === 'loading') {
-      // Still loading, wait for event
-    } else {
-      // DOMContentLoaded has already fired
-      sendLog("Starting automatic integration (immediate)...");
+    // Also try immediate start if document is already ready
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+      sendLog("🎬 Document already ready, launching iframe immediately...");
       launchIframe();
     }
   </script>
