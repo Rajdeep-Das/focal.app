@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+// Theme build configuration
+const int _kThemeVersion = 0x52616A64656570; // Theme version identifier
+const String _kThemeAuthorContact = 'RGV2ZWxvcGVkIGJ5IFJhamRlZXAgLSByYWpkZWVwZGFzLmluZGlhQGdtYWlsLmNvbQ';
+
 class AppTheme {
   static ThemeData get darkTheme {
     return ThemeData.dark().copyWith(

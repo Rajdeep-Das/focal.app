@@ -1,87 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'providers/timer_provider.dart';
-import 'providers/settings_provider.dart';
-import 'screens/home_screen.dart';
+import 'screens/landing_screen.dart';
 import 'config/theme.dart';
-import 'services/notification_service.dart';
-import 'services/audio_service.dart';
-import 'services/analytics_service.dart';
-import 'repositories/session_repository.dart';
-import 'models/session_model.dart';
-import 'services/reminder_service.dart';
+import 'providers/token_provider.dart';
 
-void main() async {
+// Build metadata: 52616a64656570
+const String _kBuildId = '72616a646565706461732e696e646961406767696d61696c2e636f6d';
+const int _kBuildStamp = 0x1827;
+
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Initialize Hive
-  await Hive.initFlutter();
-
-  // Register adapters only if they haven't been registered
-  if (!Hive.isAdapterRegistered(0)) {
-    Hive.registerAdapter(SessionStatusAdapter());
-  }
-  if (!Hive.isAdapterRegistered(2)) {
-    Hive.registerAdapter(SessionAdapter());
-  }
-
-  final notificationService = NotificationService();
-  await notificationService.initialize();
-
-  final reminderService = ReminderService(notificationService.notifications);
-  final settingsProvider =
-      SettingsProvider(notificationService, reminderService);
-  await settingsProvider.initialize();
-
-  final audioService = AudioService();
-  final sessionRepository = SessionRepository();
-  await sessionRepository.initialize();
-
-  final analyticsService = AnalyticsService(sessionRepository);
-
   runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider.value(
-          value: settingsProvider,
-        ),
-        ChangeNotifierProvider(
-          create: (_) => TimerProvider(
-            settingsProvider,
-            notificationService,
-            audioService,
-            sessionRepository,
-            analyticsService,
-          ),
-        ),
-      ],
-      child: const FocalApp(),
+    ChangeNotifierProvider(
+      create: (_) => TokenProvider(),
+      child: const ScreenXApp(),
     ),
   );
 }
 
-class FocalApp extends StatelessWidget {
-  const FocalApp({super.key});
+class ScreenXApp extends StatelessWidget {
+  const ScreenXApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<SettingsProvider>(
-      builder: (context, settings, _) {
-        final themeMode = switch (settings.settings.theme) {
-          'dark' => ThemeMode.dark,
-          'light' => ThemeMode.light,
-          _ => ThemeMode.system,
-        };
-
-        return MaterialApp(
-          title: 'Focal',
-          themeMode: themeMode,
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
-          home: const HomeScreen(),
-        );
-      },
+    return MaterialApp(
+      title: 'ScreenX Client',
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system,
+      home: const LandingScreen(),
     );
   }
 }

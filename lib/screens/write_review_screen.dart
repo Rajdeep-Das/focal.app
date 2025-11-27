@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
 class WriteReviewScreen extends StatefulWidget {
-  const WriteReviewScreen({super.key});
+  final String? customToken;
+
+  const WriteReviewScreen({super.key, this.customToken});
 
   @override
   State<WriteReviewScreen> createState() => _WriteReviewScreenState();
@@ -101,6 +103,12 @@ class _WriteReviewScreenState extends State<WriteReviewScreen> {
   }
 
   String _getWrapperHtml() {
+    // Escape the custom token for safe injection into JavaScript
+    final String? escapedToken = widget.customToken?.replaceAll("'", "\\'").replaceAll("\n", "\\n");
+    final String tokenInitScript = escapedToken != null
+        ? "const CUSTOM_TOKEN = '$escapedToken';"
+        : "const CUSTOM_TOKEN = null;";
+
     return '''
 <!DOCTYPE html>
 <html lang="en">
@@ -172,6 +180,7 @@ class _WriteReviewScreenState extends State<WriteReviewScreen> {
   <iframe id="writeReviewIframe" src="about:blank" allowFullScreen></iframe>
 
   <script>
+    $tokenInitScript
     const TARGET_ORIGIN = "$targetOrigin";
     const IFRAME_URL = "$iframeUrl";
     const iframe = document.getElementById("writeReviewIframe");
@@ -180,7 +189,7 @@ class _WriteReviewScreenState extends State<WriteReviewScreen> {
 
     // New implementation to handle READY message from iframe
     let isIframeReady = false;
-    let latestToken = null;
+    let latestToken = CUSTOM_TOKEN; // Use custom token if provided
 
     function toggleDebug() {
       debugOverlay.classList.toggle('show');
@@ -333,16 +342,26 @@ class _WriteReviewScreenState extends State<WriteReviewScreen> {
 
     // Start loading iframe and fetch token when window loads
     window.onload = function() {
-      sendLog("🎬 Window loaded, launching iframe and fetching token...");
+      sendLog("🎬 Window loaded, launching iframe...");
+      if (CUSTOM_TOKEN) {
+        sendLog("✅ Using custom token from Flutter");
+      } else {
+        sendLog("🔑 No custom token, fetching from API...");
+        fetchToken();
+      }
       launchIframe();
-      fetchToken();
     };
 
     // Also try immediate start if document is already ready
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
-      sendLog("🎬 Document already ready, launching iframe and fetching token immediately...");
+      sendLog("🎬 Document already ready, launching iframe immediately...");
+      if (CUSTOM_TOKEN) {
+        sendLog("✅ Using custom token from Flutter");
+      } else {
+        sendLog("🔑 No custom token, fetching from API...");
+        fetchToken();
+      }
       launchIframe();
-      fetchToken();
     }
   </script>
 </body>

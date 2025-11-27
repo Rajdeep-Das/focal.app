@@ -2,8 +2,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:provider/provider.dart';
 import '../models/candidate_model.dart';
 import '../services/screenx_api_service.dart';
+import '../providers/token_provider.dart';
 import 'offer_history_screen.dart';
 
 enum VerificationStatus {
@@ -507,7 +509,11 @@ class _SkillsVerificationScreenState extends State<SkillsVerificationScreen> {
     });
 
     try {
-      _jwtToken = await _apiService.fetchJwtToken();
+      // Get token from provider
+      final tokenProvider = Provider.of<TokenProvider>(context, listen: false);
+      final customToken = tokenProvider.accessToken;
+
+      _jwtToken = await _apiService.fetchJwtToken(customToken: customToken);
       debugPrint(
           'JWT Token fetched successfully: ${_jwtToken?.substring(0, 20)}...');
 
