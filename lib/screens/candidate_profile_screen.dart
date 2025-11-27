@@ -3,6 +3,7 @@ import '../models/candidate_model.dart';
 import '../services/screenx_api_service.dart';
 import 'skills_verification_screen.dart';
 import 'offer_history_screen.dart';
+import 'write_review_screen.dart';
 
 class CandidateProfileScreen extends StatefulWidget {
   final CandidateModel candidate;
@@ -258,6 +259,82 @@ class _CandidateProfileScreenState extends State<CandidateProfileScreen> {
                           label: const Text('Show Offer History'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blue[700],
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 14,
+                              horizontal: 24,
+                            ),
+                            textStyle: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            // Write Review section
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Card(
+                elevation: 2,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.rate_review,
+                            color: Colors.purple[700],
+                            size: 28,
+                          ),
+                          const SizedBox(width: 12),
+                          const Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Write a Review',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                SizedBox(height: 4),
+                                Text(
+                                  'Share your experience and feedback',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const WriteReviewScreen(),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.edit),
+                          label: const Text('Write Review'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.purple[700],
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(
                               vertical: 14,
