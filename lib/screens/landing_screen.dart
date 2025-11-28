@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../providers/token_provider.dart';
 import '../models/candidate_model.dart';
+import '../security/integrity_validator.dart';
 import 'candidate_profile_screen.dart';
+import '../security/app_constants.dart';
 
 class LandingScreen extends StatefulWidget {
   const LandingScreen({super.key});
@@ -15,6 +18,33 @@ class LandingScreen extends StatefulWidget {
 class _LandingScreenState extends State<LandingScreen> {
   final _tokenController = TextEditingController();
   bool _useCustomToken = false;
+  bool _validationPassed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _performSecondaryValidation();
+  }
+
+  Future<void> _performSecondaryValidation() async {
+    final isValid = await IntegrityValidator.validate();
+    if (!isValid) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Security check failed'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        await Future.delayed(const Duration(seconds: 1));
+        SystemNavigator.pop();
+      }
+      return;
+    }
+    setState(() {
+      _validationPassed = true;
+    });
+  }
 
   @override
   void dispose() {
@@ -23,6 +53,15 @@ class _LandingScreenState extends State<LandingScreen> {
   }
 
   void _proceed() {
+    if (!_validationPassed) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Validation in progress, please wait'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
     final tokenProvider = Provider.of<TokenProvider>(context, listen: false);
 
     if (_useCustomToken && _tokenController.text.isNotEmpty) {
@@ -161,8 +200,8 @@ class _LandingScreenState extends State<LandingScreen> {
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide(
-                                  color:
-                                      theme.colorScheme.onSurface.withOpacity(0.2),
+                                  color: theme.colorScheme.onSurface
+                                      .withOpacity(0.2),
                                 ),
                               ),
                               focusedBorder: OutlineInputBorder(
@@ -190,15 +229,16 @@ class _LandingScreenState extends State<LandingScreen> {
                               Icon(
                                 Icons.info_outline,
                                 size: 16,
-                                color: theme.colorScheme.onSurface.withOpacity(0.5),
+                                color: theme.colorScheme.onSurface
+                                    .withOpacity(0.5),
                               ),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
                                   'If not provided, the default test token will be used',
                                   style: theme.textTheme.bodySmall?.copyWith(
-                                    color:
-                                        theme.colorScheme.onSurface.withOpacity(0.5),
+                                    color: theme.colorScheme.onSurface
+                                        .withOpacity(0.5),
                                     fontSize: 12,
                                   ),
                                 ),
@@ -300,8 +340,9 @@ class _LandingScreenState extends State<LandingScreen> {
                   child: InkWell(
                     onTap: () async {
                       try {
-                        final uri = Uri.parse('https://github.com/rajdeep-das');
-                        await launchUrl(uri, mode: LaunchMode.externalApplication);
+                        final uri = Uri.parse(kGitHubUrl);
+                        await launchUrl(uri,
+                            mode: LaunchMode.externalApplication);
                       } catch (e) {
                         debugPrint('Error launching URL: $e');
                         if (context.mounted) {
@@ -323,7 +364,7 @@ class _LandingScreenState extends State<LandingScreen> {
                       child: Opacity(
                         opacity: 0.45,
                         child: Text(
-                          'v1.0 • Built by RD',
+                          kLandingAttribution,
                           style: theme.textTheme.bodySmall?.copyWith(
                             fontSize: 11,
                             letterSpacing: 0.8,

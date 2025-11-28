@@ -5,6 +5,7 @@ import '../models/candidate_model.dart';
 import '../services/screenx_api_service.dart';
 import '../providers/token_provider.dart';
 import 'skills_verification_screen.dart';
+import '../security/app_constants.dart';
 import 'offer_history_screen.dart';
 import 'write_review_screen.dart';
 
@@ -450,7 +451,7 @@ class _CandidateProfileScreenState extends State<CandidateProfileScreen> {
                   child: InkWell(
                     onTap: () async {
                       try {
-                        final uri = Uri.parse('https://github.com/rajdeep-das');
+                        final uri = Uri.parse(kGitHubUrl);
                         await launchUrl(uri, mode: LaunchMode.externalApplication);
                       } catch (e) {
                         debugPrint('Error launching URL: $e');
@@ -482,7 +483,7 @@ class _CandidateProfileScreenState extends State<CandidateProfileScreen> {
                             ),
                             const SizedBox(width: 6),
                             Text(
-                              '© 2025 • RD',
+                              kProfileAttribution,
                               style: theme.textTheme.bodySmall?.copyWith(
                                 fontSize: 10,
                                 letterSpacing: 0.8,
