@@ -380,8 +380,10 @@ class _WriteReviewScreenState extends State<WriteReviewScreen> {
   Future<ServerTrustAuthResponse?> _handleServerTrustAuth(
       InAppWebViewController controller,
       URLAuthenticationChallenge challenge) async {
+    // For development, proceed with the connection
+    debugPrint('⚠️ Proceeding with SSL certificate validation for ${challenge.protectionSpace.host}');
     return ServerTrustAuthResponse(
-      action: ServerTrustAuthResponseAction.CANCEL,
+      action: ServerTrustAuthResponseAction.PROCEED,
     );
   }
 

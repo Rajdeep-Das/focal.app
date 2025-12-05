@@ -62,5 +62,43 @@
 			<string>https</string>
 			<string>http</string>
 		</array>
+		<!-- App Transport Security Settings for WebView -->
+		<key>NSAppTransportSecurity</key>
+		<dict>
+			<!-- Allow all domains (for development) -->
+			<key>NSAllowsArbitraryLoads</key>
+			<true/>
+			<!-- Specific exception domains for OfferX services -->
+			<key>NSExceptionDomains</key>
+			<dict>
+				<key>offerx.in</key>
+				<dict>
+					<key>NSIncludesSubdomains</key>
+					<true/>
+					<key>NSTemporaryExceptionAllowsInsecureHTTPLoads</key>
+					<true/>
+					<key>NSTemporaryExceptionMinimumTLSVersion</key>
+					<string>TLSv1.0</string>
+				</dict>
+				<key>offerx.global</key>
+				<dict>
+					<key>NSIncludesSubdomains</key>
+					<true/>
+					<key>NSTemporaryExceptionAllowsInsecureHTTPLoads</key>
+					<true/>
+					<key>NSTemporaryExceptionMinimumTLSVersion</key>
+					<string>TLSv1.0</string>
+				</dict>
+				<key>screenx.ai</key>
+				<dict>
+					<key>NSIncludesSubdomains</key>
+					<true/>
+					<key>NSTemporaryExceptionAllowsInsecureHTTPLoads</key>
+					<true/>
+					<key>NSTemporaryExceptionMinimumTLSVersion</key>
+					<string>TLSv1.0</string>
+				</dict>
+			</dict>
+		</dict>
 	</dict>
 </plist>

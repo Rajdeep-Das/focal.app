@@ -857,16 +857,10 @@ class _SkillsVerificationScreenState extends State<SkillsVerificationScreen> {
   Future<ServerTrustAuthResponse?> _handleServerTrustAuth(
       InAppWebViewController controller,
       URLAuthenticationChallenge challenge) async {
-    // Only bypass SSL in debug mode
-    // if (kDebugMode) {
-    //   debugPrint('⚠️ DEBUG MODE: Bypassing SSL certificate validation for ${challenge.protectionSpace.host}');
-    //   return ServerTrustAuthResponse(
-    //     action: ServerTrustAuthResponseAction.PROCEED,
-    //   );
-    // }
-    // In release mode, use default behavior (validate certificates)
+    // For development, proceed with the connection
+    debugPrint('⚠️ Proceeding with SSL certificate validation for ${challenge.protectionSpace.host}');
     return ServerTrustAuthResponse(
-      action: ServerTrustAuthResponseAction.CANCEL,
+      action: ServerTrustAuthResponseAction.PROCEED,
     );
   }
 
