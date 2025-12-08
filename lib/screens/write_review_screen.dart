@@ -27,8 +27,8 @@ class _WriteReviewScreenState extends State<WriteReviewScreen> {
     mediaPlaybackRequiresUserGesture: false,
     allowsInlineMediaPlayback: true,
     useHybridComposition: true,
-    // Allow mixed content for development
-    mixedContentMode: MixedContentMode.MIXED_CONTENT_ALWAYS_ALLOW,
+    // Only allow HTTPS content (secure mode)
+    mixedContentMode: MixedContentMode.MIXED_CONTENT_NEVER_ALLOW,
     // Additional settings for better iframe support
     javaScriptCanOpenWindowsAutomatically: true,
     supportMultipleWindows: false,
@@ -380,11 +380,12 @@ class _WriteReviewScreenState extends State<WriteReviewScreen> {
   Future<ServerTrustAuthResponse?> _handleServerTrustAuth(
       InAppWebViewController controller,
       URLAuthenticationChallenge challenge) async {
-    // For development, proceed with the connection
-    debugPrint('⚠️ Proceeding with SSL certificate validation for ${challenge.protectionSpace.host}');
-    return ServerTrustAuthResponse(
-      action: ServerTrustAuthResponseAction.PROCEED,
-    );
+    // Perform proper SSL certificate validation
+    debugPrint('🔒 Validating SSL certificate for ${challenge.protectionSpace.host}');
+
+    // Return null to use default system certificate validation
+    // This ensures secure connections with valid certificates only
+    return null;
   }
 
   @override

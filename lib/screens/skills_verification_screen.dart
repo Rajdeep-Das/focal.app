@@ -52,8 +52,8 @@ class _SkillsVerificationScreenState extends State<SkillsVerificationScreen> {
     mediaPlaybackRequiresUserGesture: false,
     allowsInlineMediaPlayback: true,
     useHybridComposition: true,
-    // Allow mixed content for development
-    mixedContentMode: MixedContentMode.MIXED_CONTENT_ALWAYS_ALLOW,
+    // Only allow HTTPS content (secure mode)
+    mixedContentMode: MixedContentMode.MIXED_CONTENT_NEVER_ALLOW,
   );
 
   @override
@@ -161,10 +161,70 @@ class _SkillsVerificationScreenState extends State<SkillsVerificationScreen> {
         // Configuration
         const IFRAME_SRC = '$iframeUrl';
         const TARGET_ORIGIN = '$targetOrigin';
+        const TOKEN_API_URL = 'https://demoopenapi.screenx.ai/api/v1/Encryption/generate-token';
+
+        let latestToken = null;
 
         console.log('Initializing ScreenX integration...');
         console.log('Iframe URL:', IFRAME_SRC);
         console.log('Target Origin:', TARGET_ORIGIN);
+
+        let isIframeReady = false;
+
+        // Function to fetch token dynamically from ScreenX API
+        async function fetchToken() {
+            try {
+                console.log('🔑 Fetching token from ScreenX API:', TOKEN_API_URL);
+
+                const requestBody = {
+                    data: "N5lfVkp07CMOHERResS4fQNXtD/AXGZMTnA4Afzi5LlUVjLOodUSzcjQqz4amEDqJx+QVUkgz0ObaNiGx1UgNQoIgib+911eo9cVokNrDxN6kDCc0duJOjSUywO2W0t77rS5kQGV2izWRLNs5syWyu4UNAvXoBxDKcLmGJijbvYiyOK/u2oTluAF+vdZuz6G"
+                };
+
+                const response = await fetch(TOKEN_API_URL, {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (!response.ok) {
+                    console.error('❌ API returned error:', response.status, response.statusText);
+                    return null;
+                }
+
+                const data = await response.json();
+                console.log('📥 API Response:', data);
+
+                // Extract token from response (adjust based on actual response structure)
+                latestToken = data?.token || data?.resultObject?.accessToken || data?.data;
+
+                if (!latestToken) {
+                    console.error('❌ Failed to retrieve token from API response');
+                    console.error('Response data:', JSON.stringify(data));
+                    return null;
+                }
+
+                console.log('✅ Token received successfully:', latestToken.substring(0, 30) + '...');
+
+                // If iframe is already ready, notify Flutter to initialize
+                if (isIframeReady) {
+                    console.log('🚀 Iframe ready and token fetched, notifying Flutter');
+                    if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
+                        window.flutter_inappwebview.callHandler('FlutterChannel', JSON.stringify({
+                            type: 'token_ready',
+                            payload: { token: latestToken }
+                        }));
+                    }
+                }
+
+                return latestToken;
+            } catch (error) {
+                console.error('❌ Token generation failed:', error.message);
+                console.error('Error details:', error);
+                return null;
+            }
+        }
 
         // 1. Create and mount the iframe
         const frame = document.createElement('iframe');
@@ -194,7 +254,58 @@ class _SkillsVerificationScreenState extends State<SkillsVerificationScreen> {
             console.log('Message type:', type);
             console.log('Payload:', payload);
 
-            // Forward to Flutter using InAppWebView's JavaScript handler
+            // Handle READY message from iframe (similar to offer_history and write_review)
+            if (type === 'READY') {
+                console.log('✅ Received READY message from iframe!');
+                isIframeReady = true;
+
+                // Send acknowledgment back to iframe
+                try {
+                    event.source.postMessage({ type: 'ACK_PARENT' }, TARGET_ORIGIN);
+                    console.log('📤 Sent ACK_PARENT to iframe');
+                } catch (e) {
+                    console.error('Error sending ACK_PARENT:', e);
+                }
+
+                // Notify Flutter that iframe is ready
+                if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
+                    window.flutter_inappwebview.callHandler('FlutterChannel', JSON.stringify({
+                        type: 'iframe_ready_confirmed',
+                        payload: {}
+                    }));
+                }
+
+                // If we already have token, notify Flutter
+                if (latestToken) {
+                    console.log('🚀 Token already available, notifying Flutter');
+                    window.flutter_inappwebview.callHandler('FlutterChannel', JSON.stringify({
+                        type: 'token_ready',
+                        payload: { token: latestToken }
+                    }));
+                } else {
+                    // Token not available yet, fetch it now
+                    console.log('🔑 Token not available, fetching now...');
+                    fetchToken().then(token => {
+                        if (token) {
+                            console.log('✅ Token fetched after READY, notifying Flutter');
+                            window.flutter_inappwebview.callHandler('FlutterChannel', JSON.stringify({
+                                type: 'token_ready',
+                                payload: { token: token }
+                            }));
+                        } else {
+                            console.error('❌ Failed to fetch token after READY');
+                            window.flutter_inappwebview.callHandler('FlutterChannel', JSON.stringify({
+                                type: 'token_fetch_failed',
+                                payload: { error: 'Failed to fetch token from API' }
+                            }));
+                        }
+                    });
+                }
+
+                return;
+            }
+
+            // Forward all other messages to Flutter using InAppWebView's JavaScript handler
             try {
                 const messageStr = JSON.stringify(event.data);
                 if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
@@ -437,6 +548,31 @@ class _SkillsVerificationScreenState extends State<SkillsVerificationScreen> {
         case 'iframe_ready':
           _handleIframeReady();
           break;
+        case 'iframe_ready_confirmed':
+          debugPrint('✅ Iframe READY message confirmed by wrapper');
+          // Iframe sent READY and wrapper acknowledged it
+          // Don't fetch token here - wait for token_ready message from wrapper
+          setState(() {
+            _status = VerificationStatus.authenticating;
+            _statusMessage = 'Waiting for token from wrapper...';
+          });
+          break;
+        case 'token_ready':
+          debugPrint('✅ Token is ready from wrapper');
+          final tokenPayload = data['payload'] as Map<String, dynamic>?;
+          final token = tokenPayload?['token'] as String?;
+          if (token != null && token.isNotEmpty) {
+            _jwtToken = token;
+            debugPrint(
+                'Using token from wrapper: ${_jwtToken?.substring(0, 20)}...');
+            _initializeWithToken();
+          }
+          break;
+        case 'token_fetch_failed':
+          debugPrint('❌ Token fetch failed in wrapper, using fallback');
+          // Fallback to Flutter API service
+          _fetchTokenAndInitialize();
+          break;
         case 'iframe_loaded':
           _handleIframeLoaded();
           break;
@@ -492,14 +628,63 @@ class _SkillsVerificationScreenState extends State<SkillsVerificationScreen> {
   }
 
   void _handleIframeLoaded() {
-    debugPrint('Iframe loaded, now authenticating...');
+    debugPrint('Iframe loaded, now fetching token...');
     setState(() {
       _status = VerificationStatus.loadingIframe;
-      _statusMessage = 'Iframe loaded, waiting for authentication...';
+      _statusMessage = 'Iframe loaded, fetching token...';
     });
 
-    // Now fetch JWT token and initialize
-    _fetchTokenAndInitialize();
+    // Trigger token fetch in the HTML wrapper
+    _fetchTokenDynamically();
+  }
+
+  Future<void> _fetchTokenDynamically() async {
+    setState(() {
+      _status = VerificationStatus.authenticating;
+      _statusMessage = 'Fetching authentication token...';
+    });
+
+    if (_webViewController == null) {
+      _setError('WebView not ready');
+      return;
+    }
+
+    try {
+      // Call the fetchToken function in the HTML wrapper and get the result
+      final script = '''
+        (async function() {
+          try {
+            const token = await fetchToken();
+            return token;
+          } catch (e) {
+            console.error('Error fetching token:', e);
+            return null;
+          }
+        })();
+      ''';
+
+      final result =
+          await _webViewController!.evaluateJavascript(source: script);
+
+      if (result != null &&
+          result.toString().isNotEmpty &&
+          result.toString() != 'null') {
+        _jwtToken = result.toString();
+        debugPrint(
+            'JWT Token fetched dynamically: ${_jwtToken?.substring(0, 20)}...');
+
+        // Now initialize with the fetched token
+        _initializeWithToken();
+      } else {
+        // Fallback to Flutter API service if dynamic fetch fails
+        debugPrint('Dynamic token fetch failed, using fallback...');
+        await _fetchTokenAndInitialize();
+      }
+    } catch (e) {
+      debugPrint('Error in dynamic token fetch: $e');
+      // Fallback to original method
+      await _fetchTokenAndInitialize();
+    }
   }
 
   Future<void> _fetchTokenAndInitialize() async {
@@ -517,28 +702,24 @@ class _SkillsVerificationScreenState extends State<SkillsVerificationScreen> {
       debugPrint(
           'JWT Token fetched successfully: ${_jwtToken?.substring(0, 20)}...');
 
-      // Send initialize message with authorization headers
-      // Add flags to disable fullscreen requirement
-      final initMessage = {
-        'type': 'initialize',
-        'headers': {
-          'Authorization': 'Bearer $_jwtToken',
-          'X-Trigger-Type': 'skill_verification',
-        },
-        'config': {
-          'fullscreenEnabled': false,
-          'skipFullscreen': true,
-          'embedded': true,
-          'platform': 'mobile',
-          'disableFullscreen': true,
-        },
-      };
-
-      debugPrint('Sending initialize message: ${jsonEncode(initMessage)}');
-      _postMessageToIframe(initMessage);
+      _initializeWithToken();
     } catch (e) {
       _setError('Authentication failed: $e');
     }
+  }
+
+  void _initializeWithToken() {
+    // Send initialize message with authorization headers (matching web app format)
+    final initMessage = {
+      'type': 'initialize',
+      'headers': {
+        'Authorization': 'Bearer $_jwtToken',
+        'X-Trigger-Type': 'skill_verification',
+      },
+    };
+
+    debugPrint('Sending initialize message: ${jsonEncode(initMessage)}');
+    _postMessageToIframe(initMessage);
   }
 
   void _handleAuthSuccess() {
@@ -857,11 +1038,18 @@ class _SkillsVerificationScreenState extends State<SkillsVerificationScreen> {
   Future<ServerTrustAuthResponse?> _handleServerTrustAuth(
       InAppWebViewController controller,
       URLAuthenticationChallenge challenge) async {
-    // For development, proceed with the connection
-    debugPrint('⚠️ Proceeding with SSL certificate validation for ${challenge.protectionSpace.host}');
-    return ServerTrustAuthResponse(
-      action: ServerTrustAuthResponseAction.PROCEED,
-    );
+    // Perform proper SSL certificate validation
+    // Only proceed if the certificate is valid and trusted
+    debugPrint('🔒 Validating SSL certificate for ${challenge.protectionSpace.host}');
+
+    // Return null to use default system certificate validation
+    // This will check:
+    // - Certificate is from a trusted CA
+    // - Certificate is not expired
+    // - Certificate chain is valid
+    // - Domain matches the certificate
+    // If the certificate is invalid, the connection will be rejected
+    return null;
   }
 
   Color _getStatusColor() {
